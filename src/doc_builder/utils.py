@@ -1,10 +1,26 @@
+import sys
+import json
 import os
 import subprocess
 import traceback
 import logging
+from cStringIO import StringIO
 
+from sphinx.util.console import bold, lightgray, darkgray, darkgreen, red
 
 log = logging.getLogger(__name__)
+
+
+def restoring_chdir(fn):
+    # XXX:dc: This would be better off in a neutral module
+    @wraps(fn)
+    def decorator(*args, **kw):
+        try:
+            path = os.getcwd()
+            return fn(*args, **kw)
+        finally:
+            os.chdir(path)
+    return decorator
 
 
 def run(*commands, **kwargs):
@@ -27,6 +43,9 @@ def run(*commands, **kwargs):
         raise ValueError("run() requires one or more command-line strings")
     shell = kwargs.get('shell', False)
 
+    stdout = kwargs.get('stdout', subprocess.PIPE)
+    stderr = kwargs.get('stderr', subprocess.STDOUT)
+
     for command in commands:
         if shell:
             log.info("Running commands in a shell")
@@ -34,10 +53,11 @@ def run(*commands, **kwargs):
         else:
             run_command = command.split()
         log.info("Running: '%s' [%s]" % (command, cwd))
+        print bold("$ '%s' [%s]" % (command, cwd))
         try:
             p = subprocess.Popen(run_command, shell=shell, cwd=cwd,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT, env=environment)
+                                 stdout=stdout,
+                                 stderr=stderr, env=environment)
 
             out, err = p.communicate()
             ret = p.returncode
@@ -62,3 +82,46 @@ def safe_write(filename, contents):
         fh.write(contents.encode('utf-8', 'ignore'))
         fh.close()
 
+
+def obj_to_json(obj):
+    """Represent instance of a class as JSON.
+    Arguments:
+    obj -- any object
+    Return:
+    String that reprent JSON-encoded object.
+    """
+    def serialize(obj):
+        """Recursively walk object's hierarchy."""
+        if isinstance(obj, (bool, int, long, float, basestring)):
+            return obj
+        elif isinstance(obj, dict):
+            obj = obj.copy()
+            for key in obj:
+                obj[key] = serialize(obj[key])
+            return obj
+        elif isinstance(obj, list):
+            return [serialize(item) for item in obj]
+        elif isinstance(obj, tuple):
+            return tuple(serialize([item for item in obj]))
+        elif hasattr(obj, '__dict__'):
+            return serialize(obj.__dict__)
+        else:
+            return repr(obj)  # Don't know how to handle, convert to string
+    return json.dumps(serialize(obj))
+
+
+class Capturing(list):
+
+    def __enter__(self):
+        self._stdout = sys.stdout
+        self._stderr = sys.stderr
+        sys.stdout = self._stringio_out = StringIO()
+        sys.stderr = self._stringio_err = StringIO()
+        return self
+
+    def __exit__(self, *args):
+        self.extend([self._stringio_out.getvalue().splitlines(),
+                     self._stringio_err.getvalue().splitlines(),
+                     ])
+        sys.stdout = self._stdout
+        sys.stderr = self._stderr

@@ -4,8 +4,9 @@ import csv
 import os
 from StringIO import StringIO
 
-from projects.exceptions import ProjectImportError
-from vcs_support.backends.github import GithubContributionBackend
+from doc_builder.constants import BuildException
+from doc_builder.utils import run
+#from vcs_support.backends.github import GithubContributionBackend
 from vcs_support.base import BaseVCS, VCSVersion
 
 log = logging.getLogger(__name__)
@@ -14,7 +15,7 @@ log = logging.getLogger(__name__)
 class Backend(BaseVCS):
     supports_tags = True
     supports_branches = True
-    contribution_backends = [GithubContributionBackend]
+    #contribution_backends = [GithubContributionBackend]
     fallback_branch = 'master'  # default branch
 
 
@@ -37,20 +38,20 @@ class Backend(BaseVCS):
         return self.repo_url
 
     def set_remote_url(self, url):
-        return self.run('git', 'remote', 'set-url', 'origin', url)
+        return run('git remote set-url origin %s' % url)
 
     def update(self):
         # Use checkout() to update repo
         self.checkout()
 
     def repo_exists(self):
-        code, out, err = self.run('git', 'status')
+        code, out, err = run('git status')
         return code == 0
 
     def fetch(self):
-        code, out, err = self.run('git', 'fetch', '--prune')
+        code, out, err = run('git fetch --prune')
         if code != 0:
-            raise ProjectImportError(
+            raise BuildException(
                 "Failed to get code from '%s' (git fetch): %s\n\nStderr:\n\n%s\n\n" % (
                     self.repo_url, code, err)
             )
@@ -60,25 +61,23 @@ class Backend(BaseVCS):
             branch = self.default_branch or self.fallback_branch
             revision = 'origin/%s' % branch
 
-        code, out, err = self.run('git', 'checkout',
-                                  '--force', '--quiet', revision)
+        code, out, err = run('git checkout --force --quiet %s' % revision)
         if code != 0:
             log.warning("Failed to checkout revision '%s': %s" % (
                 revision, code))
         return [code, out, err]
 
     def clone(self):
-        code, out, err = self.run('git', 'clone', '--recursive', '--quiet',
-                                  self.repo_url, '.')
+        code, out, err = run('git clone --recursive --quiet %s .' % self.repo_url)
         if code != 0:
-            raise ProjectImportError(
+            raise BuildException(
                 "Failed to get code from '%s' (git clone): %s" % (
                     self.repo_url, code)
             )
 
     @property
     def tags(self):
-        retcode, stdout, err = self.run('git', 'show-ref', '--tags')
+        retcode, stdout, err = run('git show-ref --tags')
         # error (or no tags found)
         if retcode != 0:
             return []
@@ -113,7 +112,7 @@ class Backend(BaseVCS):
     @property
     def branches(self):
         # Only show remote branches
-        retcode, stdout, err = self.run('git', 'branch', '-r')
+        retcode, stdout, err = run('git branch -r')
         # error (or no tags found)
         if retcode != 0:
             return []
@@ -150,7 +149,7 @@ class Backend(BaseVCS):
 
     @property
     def commit(self):
-        retcode, stdout, err = self.run('git', 'rev-parse', 'HEAD')
+        retcode, stdout, err = run('git rev-parse HEAD')
         return stdout.strip()
 
     def checkout(self, identifier=None):
@@ -176,12 +175,11 @@ class Backend(BaseVCS):
             return code, out, err
 
         # Clean any remains of previous checkouts
-        self.run('git', 'clean', '-d', '-f', '-f')
+        run('git clean -d -f -f')
 
         # Update submodules
-        self.run('git', 'submodule', 'sync')
-        self.run('git', 'submodule', 'update',
-                 '--init', '--recursive', '--force')
+        run('git submodule sync')
+        run('git submodule update --init --recursive --force')
 
         return code, out, err
 
@@ -197,7 +195,7 @@ class Backend(BaseVCS):
         return ref
 
     def ref_exists(self, ref):
-        code, out, err = self.run('git', 'show-ref', ref)
+        code, out, err = run('git show-ref %s' % ref)
         return code == 0
 
     @property

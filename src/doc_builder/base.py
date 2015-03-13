@@ -1,11 +1,12 @@
+import sys
 import socket
-from functools import wraps
 import os
 import logging
 import shutil
 
+from sphinx.util.osutil import cd
 
-from doc_builder.constants import LOG_TEMPLATE
+from doc_builder.constants import LOG_TEMPLATE, BuildException
 from doc_builder import signals
 from doc_builder.utils import run
 
@@ -13,18 +14,6 @@ from vcs_support.utils import NonBlockingLock
 
 
 log = logging.getLogger(__name__)
-
-
-def restoring_chdir(fn):
-    # XXX:dc: This would be better off in a neutral module
-    @wraps(fn)
-    def decorator(*args, **kw):
-        try:
-            path = os.getcwd()
-            return fn(*args, **kw)
-        finally:
-            os.chdir(path)
-    return decorator
 
 
 class BaseBuilder(object):
@@ -41,7 +30,137 @@ class BaseBuilder(object):
 
     def __init__(self, state):
         self.state = state
-        self.target = self.state.fs.project.get_artifact_path(version=self.state.core.version, type=self.type)
+
+    def info(self, msg):
+        log.info(
+            LOG_TEMPLATE.format(
+                project=self.state.project,
+                version=self.state.version,
+                msg=msg,
+            )
+        )
+
+    def checkout_code(self):
+        """
+        Check out or update the given project's repository.
+        """
+
+        with NonBlockingLock(version=self.state.version, project=self.state.project, doc_path=self.state.root, max_lock_age=self.state.REPO_LOCK_SECONDS):
+
+            if signals.USE_SIGNALS:
+                signals.before_vcs.send(sender=self.state)
+
+            # Get the actual code on disk
+            self.info(
+                msg='Checking out version {slug}: {identifier}'.format(
+                    slug=self.state.project,
+                    identifier=self.state.commit,
+                )
+            )
+            with cd(self.state.root):
+                version_repo = self.state.vcs_repo(self.state.project, self.state.root)
+                checkout_ret = version_repo.checkout(
+                    self.state.commit
+                )
+
+            if signals.USE_SIGNALS:
+                signals.after_vcs.send(sender=self.state)
+
+            # Update tags/version
+
+            # version_post_data = {'repo': version_repo.repo_url}
+
+            # if version_repo.supports_tags:
+            #     version_post_data['tags'] = [
+            #         {'identifier': v.identifier,
+            #          'verbose_name': v.verbose_name,
+            #          } for v in version_repo.tags
+            #     ]
+
+            # if version_repo.supports_branches:
+            #     version_post_data['branches'] = [
+            #         {'identifier': v.identifier,
+            #          'verbose_name': v.verbose_name,
+            #          } for v in version_repo.branches
+            #     ]
+
+            # try:
+            #     apiv2.project(project.pk).sync_versions.post(version_post_data)
+            # except Exception, e:
+            #     print "Sync Versions Exception: %s" % e.message
+
+        return checkout_ret
+
+    def setup_environment(self):
+        """
+        Build the virtualenv and install the project into it.
+        """
+        ret_dict = {}
+        print "Setting up env in " + self.state.env_path
+
+        # Clean up from possible old builds
+        build_dir = os.path.join(self.state.env_path, 'build')
+        if os.path.exists(build_dir):
+            log.info(LOG_TEMPLATE.format(project=self.state.project, version=self.state.version, msg='Removing existing build dir'))
+            shutil.rmtree(build_dir)
+
+        ret_dict['env'] = run(
+            '{cmd} {path}'.format(
+                cmd='virtualenv -p %s' % self.state.interpreter,
+                path=self.state.env_path),
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+        )
+
+        # Other code expects sphinx-build to be installed inside the
+        # virtualenv.  Using the -I option makes sure it gets installed
+        # even if it is already installed system-wide (and
+        # --system-site-packages is used)
+        if self.state.use_system_packages:
+            ignore_option = '-I'
+        else:
+            ignore_option = ''
+
+        ret_dict['sphinx'] = run(
+            ('{cmd} install -U -I '
+             'sphinx_rtd_theme sphinx==1.2.2 '
+             'virtualenv==1.9.1 docutils==0.11 '
+             'git+git://github.com/ericholscher/readthedocs-sphinx-ext#egg=readthedocs_ext').format(
+                cmd=self.state.env_bin('pip'),),
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+        )
+
+        requirements_file_path = self.state.requirements_file
+        if not requirements_file_path:
+            for path in [self.docs_dir(), '']:
+                for req_file in ['pip_requirements.txt', 'requirements.txt']:
+                    test_path = os.path.join(self.state.root, path, req_file)
+                    print('Testing %s' % test_path)
+                    if os.path.exists(test_path):
+                        requirements_file_path = test_path
+                        break
+
+        if requirements_file_path:
+            os.chdir(self.state.root)
+            ret_dict['requirements'] = run(
+                '{cmd} install --exists-action=w -r {requirements}'.format(
+                    cmd=self.state.env_bin('pip'),
+                    requirements=requirements_file_path),
+                stdout=sys.stdout,
+                stderr=sys.stderr,
+            )
+
+        os.chdir(self.state.root)
+        if os.path.isfile("setup.py"):
+            ret_dict['install'] = run(
+                '{cmd} setup.py install --force'.format(
+                    cmd=self.state.env_bin('python')
+                ),
+                stdout=sys.stdout,
+                stderr=sys.stderr,
+            )
+        return ret_dict
 
     def run_build(self, force=False):
         """
@@ -56,9 +175,9 @@ class BaseBuilder(object):
         if signals.USE_SIGNALS:
             signals.before_build.send(sender=self.state)
 
-        with NonBlockingLock(version=self.state.core.version, project=self.state.core.project, doc_path=self.state.fs.project.doc_path, max_lock_age=self.state.settings.REPO_LOCK_SECONDS):
+        with NonBlockingLock(version=self.state.version, project=self.state.project, doc_path=self.state.root, max_lock_age=self.state.REPO_LOCK_SECONDS):
 
-            html_builder = builder_loading.get(self.state.core.documentation_type)(self.state)
+            html_builder = builder_loading.get(self.state.documentation_type)(self.state)
             if force:
                 html_builder.force()
             html_builder.append_conf()
@@ -78,8 +197,8 @@ class BaseBuilder(object):
 
             fake_results = (999, "Project Skipped, Didn't build",
                             "Project Skipped, Didn't build")
-            if 'mkdocs' in self.state.core.documentation_type:
-                if 'search' in self.state.core.build_types:
+            if 'mkdocs' in self.state.documentation_type:
+                if 'search' in self.state.build_types:
                     try:
                         search_builder = builder_loading.get('mkdocs_json')(self.state)
                         results['search'] = search_builder.build()
@@ -87,12 +206,12 @@ class BaseBuilder(object):
                             search_builder.move()
                     except:
                         log.error(LOG_TEMPLATE.format(
-                            project=self.state.core.project, version=self.state.core.version, msg="JSON Build Error"), exc_info=True)
+                            project=self.state.project, version=self.state.version, msg="JSON Build Error"), exc_info=True)
 
-            if 'sphinx' in self.state.core.documentation_type:
+            if 'sphinx' in self.state.documentation_type:
                 # Search builder. Creates JSON from docs and sends it to the
                 # server.
-                if 'search' in self.state.core.build_types:
+                if 'search' in self.state.build_types:
                     try:
                         search_builder = builder_loading.get('sphinx_search')(self.state)
                         results['search'] = search_builder.build()
@@ -101,9 +220,9 @@ class BaseBuilder(object):
                             search_builder.move()
                     except:
                         log.error(LOG_TEMPLATE.format(
-                            project=self.state.core.project, version=self.state.core.version, msg="JSON Build Error"), exc_info=True)
+                            project=self.state.project, version=self.state.version, msg="JSON Build Error"), exc_info=True)
                 # Local media builder for singlepage HTML download archive
-                if 'localmedia' in self.state.core.build_types:
+                if 'localmedia' in self.state.build_types:
                     try:
                         localmedia_builder = builder_loading.get('sphinx_singlehtmllocalmedia')(self.state)
                         results['localmedia'] = localmedia_builder.build()
@@ -111,11 +230,11 @@ class BaseBuilder(object):
                             localmedia_builder.move()
                     except:
                         log.error(LOG_TEMPLATE.format(
-                            project=self.state.core.project, version=self.state.core.version, msg="Local Media HTML Build Error"), exc_info=True)
+                            project=self.state.project, version=self.state.version, msg="Local Media HTML Build Error"), exc_info=True)
 
                 # Optional build steps
-                if self.state.core.name not in self.state.settings.HTML_ONLY:
-                    if 'pdf' in self.state.core.build_types:
+                if self.state.project not in self.state.HTML_ONLY:
+                    if 'pdf' in self.state.build_types:
                         pdf_builder = builder_loading.get('sphinx_pdf')(self.state)
                         results['pdf'] = pdf_builder.build()
                         # Always move pdf results even when there's an error.
@@ -123,7 +242,7 @@ class BaseBuilder(object):
                         pdf_builder.move()
                     else:
                         results['pdf'] = fake_results
-                    if 'epub' in self.state.core.build_types:
+                    if 'epub' in self.state.build_types:
                         epub_builder = builder_loading.get('sphinx_epub')(self.state)
                         results['epub'] = epub_builder.build()
                         if results['epub'][0] == 0:
@@ -135,60 +254,6 @@ class BaseBuilder(object):
             signals.after_build.send(sender=self.state)
 
         return results
-
-    def setup_environment(self):
-        """
-        Build the virtualenv and install the project into it.
-        """
-        ret_dict = {}
-        if self.state.core.virtualenv:
-            # Clean up from possible old builds
-            build_dir = os.path.join(self.state.fs.project.env_path, 'build')
-            if os.path.exists(build_dir):
-                log.info(LOG_TEMPLATE.format(project=self.state.core.project, version=self.state.core.version, msg='Removing existing build dir'))
-                shutil.rmtree(build_dir)
-
-            if self.state.core.system_packages:
-                site_packages = '--system-site-packages'
-            else:
-                site_packages = '--no-site-packages'
-
-            venv_cmd = 'virtualenv-2.7 -p %s' % self.state.core.interpreter
-            ret_dict['env'] = run(
-                '{cmd} {site_packages} {path}'.format(
-                    cmd=venv_cmd,
-                    site_packages=site_packages,
-                    path=self.state.fs.project.env_path)
-            )
-            # Other code expects sphinx-build to be installed inside the
-            # virtualenv.  Using the -I option makes sure it gets installed
-            # even if it is already installed system-wide (and
-            # --system-site-packages is used)
-            if self.state.core.system_packages:
-                ignore_option = '-I'
-            else:
-                ignore_option = ''
-            ret_dict['sphinx'] = run(
-                ('{cmd} install -U {ignore_option} '
-                 'sphinx_rtd_theme sphinx==1.2.2 '
-                 'virtualenv==1.9.1 docutils==0.11 '
-                 'git+git://github.com/ericholscher/readthedocs-sphinx-ext#egg=readthedocs_ext').format(
-                    cmd=self.state.fs.env_bin('pip'),
-                    ignore_option=ignore_option))
-
-            if self.state.core.requirements_file:
-                os.chdir(self.state.fs.checkout_path)
-                ret_dict['requirements'] = run(
-                    '{cmd} install --exists-action=w -r {requirements}'.format(
-                        cmd=self.state.fs.env_bin('pip'),
-                        requirements=self.state.core.requirements_file))
-
-            os.chdir(self.state.fs.checkout_path)
-            if os.path.isfile("setup.py"):
-                ret_dict['install'] = run(
-                    '{cmd} setup.py install --force'.format(
-                        cmd=self.state.fs.env_bin('python')))
-        return ret_dict
 
     def force(self, **kwargs):
         """
@@ -229,9 +294,8 @@ class BaseBuilder(object):
         """
 
         if not docs_dir:
-            checkout_path = self.version.project.checkout_path(self.self.state.core.version)
             for possible_path in ['docs', 'doc', 'Doc', 'book']:
-                if os.path.exists(os.path.join(checkout_path, '%s' % possible_path)):
+                if os.path.exists(os.path.join(self.state.root, '%s' % possible_path)):
                     docs_dir = possible_path
                     break
 

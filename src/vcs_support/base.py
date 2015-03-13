@@ -87,7 +87,7 @@ class BaseVCS(BaseCLI):
     # General methods
     #==========================================================================
 
-    def __init__(self, project, version, **kwargs):
+    def __init__(self, project, **kwargs):
         self.default_branch = project.default_branch
         self.name = project.name
         self.repo_url = project.repo_url
@@ -96,6 +96,7 @@ class BaseVCS(BaseCLI):
     def check_working_dir(self):
         if not os.path.exists(self.working_dir):
             os.makedirs(self.working_dir)
+            os.chdir(self.working_dir)
 
     def make_clean_working_dir(self):
         "Ensures that the working dir exists and is empty"

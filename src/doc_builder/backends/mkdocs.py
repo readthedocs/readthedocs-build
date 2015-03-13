@@ -5,16 +5,10 @@ import logging
 import json
 import yaml
 
-from django.conf import settings
-from django.template import Context, loader as template_loader
-
-from doc_builder.base import BaseBuilder, restoring_chdir
+from doc_builder.base import BaseBuilder
 from doc_builder.utils import run
 
 log = logging.getLogger(__name__)
-
-TEMPLATE_DIR = '%s/readthedocs/templates/mkdocs/readthedocs' % settings.SITE_ROOT
-OVERRIDE_TEMPLATE_DIR = '%s/readthedocs/templates/mkdocs/overrides' % settings.SITE_ROOT
 
 
 class BaseMkdocs(BaseBuilder):
@@ -142,7 +136,6 @@ class BaseMkdocs(BaseBuilder):
         include_file.write(include_string)
         include_file.close()
 
-    @restoring_chdir
     def build(self, **kwargs):
         checkout_path = self.version.project.checkout_path(self.version.slug)
         #site_path = os.path.join(checkout_path, 'site')

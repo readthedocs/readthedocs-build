@@ -10,14 +10,17 @@ An example use of this library is:
 
 .. code-block::
 
-	>>> from readthedocs.build import loading
-	>>> from readthedocs.build import state
+	import os
 
-	>>> build_state = state.load('.readthedocs.yml')
-	>>> BuilderClass = loading.get(build_state.documentation_type)
-	>>> builder = BuilderClass(build_state)
-	>>> builder.append_conf()
-	>>> builder.build()
+	from doc_builder.loader import loading
+	from doc_builder.state import BuildState
+
+	docs_dir = os.getcwd()
+
+	state = BuildState(root=docs_dir)
+	BuilderClass = loading.get('sphinx')
+	builder = BuilderClass(state=state)
+	builder.build()
 
 This will run the same code as RTD,
 so you should be able to debug the build more easily.
@@ -41,14 +44,5 @@ Running a build is simple::
 
 You can set a specific output directory::
 
-	rtd-build -o site
-
-You can also 
-
-Steps
-~~~~~
-
-Configuration
-~~~~~~~~~~~~~
-
+	rtd-build --output=html_dir
 

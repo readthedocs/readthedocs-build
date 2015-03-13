@@ -8,7 +8,7 @@ and can be used outside of RTD to test your builds.
 An example use of this library is:
 
 
-.. doctest::
+.. code-block::
 
 	>>> from readthedocs.build import loading
 	>>> from readthedocs.build import state

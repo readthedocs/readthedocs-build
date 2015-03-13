@@ -22,9 +22,9 @@ setup(
     long_description=codecs.open("README.rst", "r", "utf-8").read(),
     entry_points={
         'console_scripts': [
-            'readthedocs-build=cli:run',
-            'rtd-build=cli:run',
-            'rtfd-build=cli:run',
+            'readthedocs-build=cli:run_main',
+            'rtd-build=cli:run_main',
+            'rtfd-build=cli:run_main',
         ]
     },
     **extra_setup

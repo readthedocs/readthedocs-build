@@ -8,7 +8,7 @@ and can be used outside of RTD to test your builds.
 An example use of this library is:
 
 
-.. code-block::
+.. code-block:: python
 
 	import os
 
@@ -46,3 +46,6 @@ You can set a specific output directory::
 
 	rtd-build --output=html_dir
 
+Run a fully isolated build::
+
+	rtd-build --full --output=html_dir

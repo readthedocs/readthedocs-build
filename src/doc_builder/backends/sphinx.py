@@ -49,6 +49,7 @@ class BaseSphinx(BaseBuilder):
             doctreedir=os.path.join(self.state.output_path, '.doctrees'),
             buildername='html',
         )
+        app.rtd_state = self.state
         app.setup_extension('readthedocs_ext.readthedocs')
         app._init_builder(self.sphinx_builder)
         app.emit('builder-inited')
@@ -215,7 +216,7 @@ class BaseSphinx(BaseBuilder):
     #         context['display_bitbucket'] = state.vcs.display_bitbucket
 
     #     app.config.html_context.update(context)
-    
+
 
 class HtmlBuilder(BaseSphinx):
     type = 'sphinx'

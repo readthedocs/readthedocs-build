@@ -23,7 +23,8 @@ setup(
     entry_points={
         'console_scripts': [
             'readthedocs-build=cli:run',
-            'rtd-build=cli:run'
+            'rtd-build=cli:run',
+            'rtfd-build=cli:run',
         ]
     },
     **extra_setup

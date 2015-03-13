@@ -20,6 +20,7 @@ class TestState(TestCase):
         BuilderClass = loading.get('sphinx')
         builder = BuilderClass(state=state)
 
+        builder.append_conf()
         builder.build()
         self.assertIn('index.html', os.listdir(state.output_path))
         shutil.rmtree(state.output_path)
@@ -35,7 +36,7 @@ class TestState(TestCase):
 
         builder.checkout_code()
         builder.setup_environment()
-        # print builder.append_conf()
+        builder.append_conf()
         builder.build()
         self.assertIn('index.html', os.listdir(state.output_path))
 

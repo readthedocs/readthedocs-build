@@ -2,12 +2,12 @@ import fnmatch
 import json
 import yaml
 import os
-import re
+import urlparse
 import logging
 
 from vcs_support.base import VCSProject
 from vcs_support.backends import backend_cls
-from doc_builder.constants import BuildException
+from doc_builder.constants import BuildException, SITE_ROOT
 
 
 log = logging.getLogger(__name__)
@@ -70,20 +70,59 @@ class VersionMixin(object):
         if self.conf_file:
             return self.conf_file.replace('/conf.py', '')
 
+    @property
+    def rtd_conf_file(self):
+        if self.conf_file:
+            return self.conf_file.replace('conf.py', 'readthedocs-conf.py')
+
+    @property
+    def rtd_json_file(self):
+        if self.conf_file:
+            return self.conf_file.replace('conf.py', 'readthedocs-conf.json')
+
     def env_bin(self, bin):
         return os.path.join(self.env_path, 'bin', bin)
+
+    @property
+    def canonical_domain(self):
+        if not self.clean_canonical_url:
+            return ""
+        return urlparse(self.clean_canonical_url).netloc
+
+    @property
+    def clean_canonical_url(self):
+        if not self.canonical_url:
+            return ""
+        parsed = urlparse(self.canonical_url)
+        if parsed.scheme:
+            scheme, netloc = parsed.scheme, parsed.netloc
+        elif parsed.netloc:
+            scheme, netloc = "http", parsed.netloc
+        else:
+            scheme, netloc = "http", parsed.path
+        return "%s://%s/" % (scheme, netloc)
 
 
 class VCSMixin(object):
 
     @property
+    def display_github(self):
+        if 'repo' not in self.__dict__:
+            return False
+        return 'github' in self.repo
+
+    @property
+    def display_bitbucket(self):
+        if 'repo' not in self.__dict__:
+            return False
+        return 'bitbucket' in self.repo
+
+    @property
     def username_repo(self):
-        if 'github' in self.repo:
+        if self.display_github:
             matches = self.GH_REGEXS
-            self.display_github = True
-        elif 'bitbucket' in self.repo:
+        if self.display_bitbucket:
             matches = self.BB_REGEXS
-            self.display_bitbucket = True
         for regex in matches:
             match = regex.search(self.repo)
             if match:
@@ -115,15 +154,15 @@ class BuildState(VCSMixin, VersionMixin):
     version = None
 
     # VCS
-    repo = None
+    repo = ''
     type = 'git'
     commit = ''
 
+    canonical_url = ''
     language = 'en'
-    downloads = []
+    downloads = {}
     versions = []
     analytics_code = None
-    canonical_url = None
     single_version = None
 
     virtualenv = True
@@ -142,15 +181,19 @@ class BuildState(VCSMixin, VersionMixin):
     MEDIA_URL = 'https://media.readthedocs.org/'
     PRODUCTION_DOMAIN = 'https://readthedocs.org'
     STATIC_PATH = '/static/'
-    TEMPLATE_PATH = None
+    TEMPLATE_PATH = os.path.join(SITE_ROOT, 'templates')
     REPO_LOCK_SECONDS = 30
     HTML_ONLY = []
 
     def __init__(self, root, **kwargs):
-        self.root = root
+
+        for key, val in self.__class__.__dict__.iteritems():
+            setattr(self, key, val)
 
         for kwarg, val in kwargs.items():
             setattr(self, kwarg, val)
+
+        self.root = root
 
         if 'output_path' not in self.__dict__:
             self.output_path = os.path.join(root, 'readthedocs_output')
@@ -175,3 +218,6 @@ class BuildState(VCSMixin, VersionMixin):
             log.debug("No .readthedocs.yml found.")
         return self.__class__(**yaml_obj)
 
+    def from_dict_obj(self, in_dict):
+        for kwarg, val in in_dict.items():
+            setattr(self, kwarg, val)

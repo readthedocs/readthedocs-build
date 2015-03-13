@@ -6,10 +6,13 @@
 Welcome to Read the Docs Build's documentation!
 ===============================================
 
-Contents:
+This is a fine set of docs
 
 .. toctree::
    :maxdepth: 2
+   :glob:
+
+   steps
 
 
 

@@ -9,9 +9,10 @@ from importlib import import_module
 
 from doc_builder.base import BaseBuilder
 from doc_builder.utils import run, safe_write, obj_to_json, Capturing
-from doc_builder.render import render_to_string
+from doc_builder import render
 from doc_builder.constants import BuildException, TEMPLATE_DIR
 
+import sphinx_rtd_theme
 
 log = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ def monkeypatch(self, buildername):
     self.builder = builderclass(self)
 
 sphinx_application.Sphinx._init_builder = monkeypatch
+sphinx_application.CONFIG_FILENAME = 'readthedocs-conf.py'
 
 
 class BaseSphinx(BaseBuilder):
@@ -38,14 +40,6 @@ class BaseSphinx(BaseBuilder):
     """
     The parent for most sphinx builders.
     """
-
-    # def __init__(self, *args, **kwargs):
-    #     super(BaseSphinx, self).__init__(*args, **kwargs)
-    #     try:
-    #         self.old_artifact_path = os.path.join(self.state.fs.conf_dir, self.sphinx_build_dir)
-    #     except BuildException:
-    #         docs_dir = self.docs_dir()
-    #         self.old_artifact_path = os.path.join(docs_dir, self.sphinx_build_dir)
 
     def build(self, **kwargs):
         app = sphinx_application.Sphinx(
@@ -58,6 +52,9 @@ class BaseSphinx(BaseBuilder):
         app.setup_extension('readthedocs_ext.readthedocs')
         app._init_builder(self.sphinx_builder)
         app.emit('builder-inited')
+
+        app.config.init_values(app.warn)
+        app._init_env(False)
         app.build(force_all=True)
         return True
 
@@ -66,11 +63,11 @@ class BaseSphinx(BaseBuilder):
         Create ``conf.py`` if it doesn't exist.
         """
         docs_dir = self.docs_dir()
-        conf_template = render_to_string('doc_builder/conf.py.conf',
-                                         {'project': self.state.project,
-                                          'version': self.state.version,
-                                          'template_dir': TEMPLATE_DIR,
-                                          })
+        conf_template = render.render_to_string('doc_builder/conf.py.conf',
+                                                {'project': self.state.project,
+                                                 'version': self.state.version,
+                                                 'template_dir': TEMPLATE_DIR,
+                                                 })
         conf_file = os.path.join(docs_dir, 'conf.py')
         safe_write(conf_file, conf_template)
 
@@ -83,19 +80,29 @@ class BaseSphinx(BaseBuilder):
             self.state.conf_file
         except BuildException:
             self._write_config()
-            self.create_index(extension='rst')
+            # self.create_index(extension='rst')
 
-        # Open file for appending.
-        try:
-            outfile = codecs.open(self.state.conf_file, encoding='utf-8', mode='a')
-            outfile.write("\n")
-        except IOError:
-            trace = sys.exc_info()[2]
-            raise BuildException('Conf file not found'), None, trace
+        # # Open file for appending.
+        json_file = codecs.open(self.state.rtd_json_file, encoding='utf-8', mode='w+')
+        json_file.write(obj_to_json(self.state))
+        json_file.close()
 
-        rtd_ctx = Context({
-            'state': self.state,
-            'json_state': obj_to_json(self.state),
+        outfile = codecs.open(self.state.rtd_conf_file, encoding='utf-8', mode='w+')
+        rtd_string = render.render_to_string('doc_builder/conf.py.tmpl', state=self.state)
+        outfile.write(rtd_string)
+        outfile.close()
+
+
+
+
+
+
+
+
+
+
+        # rtd_ctx = Context({
+            #'state': self.state,
             # 'versions': project.api_versions(),
             # 'downloads': self.version.get_downloads(pretty=True),
             # 'current_version': self.version.slug,
@@ -116,7 +123,7 @@ class BaseSphinx(BaseBuilder):
             # 'bitbucket_repo': bitbucket_info[1],
             # 'bitbucket_version':  remote_version,
             # 'display_bitbucket': display_bitbucket,
-        })
+        # })
 
         # Avoid hitting database and API if using Docker build environment
         # if getattr(settings, 'DONT_HIT_API', False):
@@ -126,9 +133,89 @@ class BaseSphinx(BaseBuilder):
         #     rtd_ctx['versions'] = project.api_versions()
         #     rtd_ctx['downloads'] = (apiv2.version(self.version.pk)
         #                             .downloads.get()['downloads'])
-        rtd_string = template_loader.get_template('doc_builder/conf.py.tmpl').render(rtd_ctx)
-        outfile.write(rtd_string)
 
+    # def __init__(self, *args, **kwargs):
+    #     super(BaseSphinx, self).__init__(*args, **kwargs)
+    #     try:
+    #         self.old_artifact_path = os.path.join(self.state.fs.conf_dir, self.sphinx_build_dir)
+    #     except BuildException:
+    #         docs_dir = self.docs_dir()
+    #         self.old_artifact_path = os.path.join(docs_dir, self.sphinx_build_dir)
+
+    # def setup_config(self, app):
+    #     app.config.templates_path.insert(0, self.state.TEMPLATE_PATH)
+    #     app.config.html_static_path.append(self.state.STATIC_PATH)
+    #     app.config.html_theme_path.append(self.state.TEMPLATE_PATH)
+
+    #     # Add RTD Theme only if they aren't overriding it already
+    #     using_rtd_theme = False
+
+    #     if app.config.html_theme:
+    #         if app.config.html_theme in ['default']:
+    #             # Allow people to bail with a hack of having an html_style
+    #             if not app.config.html_style:
+    #                 app.config.html_theme = 'sphinx_rtd_theme'
+    #                 using_rtd_theme = True
+    #                 app.config.html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+    #     else:
+    #         app.config.html_theme = 'sphinx_rtd_theme'
+    #         using_rtd_theme = True
+    #         app.config.html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+    #     state = self.state
+
+    #     # Add project information to the template context.
+    #     context = {
+    #         'READTHEDOCS': True,
+
+    #         'using_theme': using_rtd_theme,
+    #         'html_theme': app.config.html_theme,
+    #         'using_theme': (app.config.html_theme == "default"),
+    #         'new_theme': (app.config.html_theme == "sphinx_rtd_theme"),
+    #         'source_suffix': globals().get('source_suffix', '.rst'),
+
+    #         'current_version': state.version,
+    #         'MEDIA_URL': state.MEDIA_URL,
+    #         'PRODUCTION_DOMAIN': state.PRODUCTION_DOMAIN,
+    #         'versions': [],
+    #         'downloads': [],
+    #         'slug': state.version,
+    #         'name': state.project,
+    #         'rtd_language': state.language,
+    #         'canonical_url': state.clean_canonical_url,
+    #         'analytics_code': state.analytics_code,
+    #         'single_version': state.single_version,
+    #         'conf_py_path': state.conf_file,
+    #         'api_host': state.API_HOST,
+    #         'user_analytics_code': state.analytics_code or '',
+    #         'global_analytics_code': state.analytics_code,
+    #         'commit': state.commit,
+    #     }
+
+    #     for version in state.versions:
+    #         context['versions'].append(
+    #             (state.version, "/{language}/{slug}/".format(language=state.language, slug=state.version))
+    #         )
+
+    #     for key, val in state.downloads.items():
+    #         context['downloads'].append(
+    #             (key, val)
+    #         )
+
+    #     if self.state.display_github:
+    #         context['github_user'] = state.vcs.username
+    #         context['github_repo'] = state.vcs.repo
+    #         context['github_version'] = state.vcs.branch
+    #         context['display_github'] = state.vcs.display_github
+
+    #     if self.state.display_bitbucket:
+    #         context['bitbucket_user'] = state.vcs.username
+    #         context['bitbucket_repo'] = state.vcs.repo
+    #         context['bitbucket_version'] = state.vcs.branch
+    #         context['display_bitbucket'] = state.vcs.display_bitbucket
+
+    #     app.config.html_context.update(context)
+    
 
 class HtmlBuilder(BaseSphinx):
     type = 'sphinx'

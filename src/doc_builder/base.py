@@ -96,7 +96,6 @@ class BaseBuilder(object):
         Build the virtualenv and install the project into it.
         """
         ret_dict = {}
-        print "Setting up env in " + self.state.env_path
 
         # Clean up from possible old builds
         build_dir = os.path.join(self.state.env_path, 'build')
@@ -138,7 +137,6 @@ class BaseBuilder(object):
             for path in [self.docs_dir(), '']:
                 for req_file in ['pip_requirements.txt', 'requirements.txt']:
                     test_path = os.path.join(self.state.root, path, req_file)
-                    print('Testing %s' % test_path)
                     if os.path.exists(test_path):
                         requirements_file_path = test_path
                         break

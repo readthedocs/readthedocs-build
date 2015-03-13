@@ -25,6 +25,19 @@ An example use of this library is:
 This will run the same code as RTD,
 so you should be able to debug the build more easily.
 
+Development
+-----------
+
+Just run::
+
+    pip install -e .
+
+This will install the project into your environment, and have it pick up changes as you edit them in the code.
+
+To run the tests::
+
+    ./runtests.sh
+
 Build Process
 -------------
 

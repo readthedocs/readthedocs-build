@@ -122,11 +122,13 @@ class BaseBuilder(object):
             ignore_option = ''
 
         ret_dict['sphinx'] = run(
-            ('{cmd} install -U -I '
+            ('{cmd} install -U {ignore_option} '
              'sphinx_rtd_theme sphinx==1.2.2 '
              'virtualenv==1.9.1 docutils==0.11 '
              'git+git://github.com/ericholscher/readthedocs-sphinx-ext#egg=readthedocs_ext').format(
-                cmd=self.state.env_bin('pip'),),
+                ignore_option=ignore_option,
+                cmd=self.state.env_bin('pip')
+            ),
             stdout=sys.stdout,
             stderr=sys.stderr,
         )

@@ -152,7 +152,10 @@ class BuildState(VCSMixin, VersionMixin):
         for kwarg, val in kwargs.items():
             setattr(self, kwarg, val)
 
-        self.env_path = os.path.join(root, 'venv')
+        if 'output_path' not in self.__dict__:
+            self.output_path = os.path.join(root, 'readthedocs_output')
+        if 'env_path' not in self.__dict__:
+            self.env_path = os.path.join(root, 'venv')
 
     def get_build_state(self, path):
         """

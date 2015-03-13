@@ -46,14 +46,10 @@ if 'html_theme' in globals():
         # Allow people to bail with a hack of having an html_style
         if not 'html_style' in globals():
             html_theme = 'sphinx_rtd_theme'
-            html_style = None
-            html_theme_options = {}
             using_rtd_theme = True
             html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 else:
     html_theme = 'sphinx_rtd_theme'
-    html_style = None
-    html_theme_options = {}
     using_rtd_theme = True
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 

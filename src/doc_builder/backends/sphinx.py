@@ -48,12 +48,11 @@ class BaseSphinx(BaseBuilder):
     #         self.old_artifact_path = os.path.join(docs_dir, self.sphinx_build_dir)
 
     def build(self, **kwargs):
-        outdir = os.path.normpath(os.path.join(self.state.root, self.sphinx_build_dir))
         app = sphinx_application.Sphinx(
             srcdir=self.state.conf_dir,
             confdir=self.state.conf_dir,
-            outdir=outdir,
-            doctreedir=os.path.join(outdir, '.doctrees'),
+            outdir=self.state.output_path,
+            doctreedir=os.path.join(self.state.output_path, '.doctrees'),
             buildername='html',
         )
         app.setup_extension('readthedocs_ext.readthedocs')
@@ -61,7 +60,6 @@ class BaseSphinx(BaseBuilder):
         app.emit('builder-inited')
         app.build(force_all=True)
         return True
-
 
     def _write_config(self):
         """

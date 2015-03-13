@@ -21,10 +21,8 @@ class TestState(TestCase):
         builder = BuilderClass(state=state)
 
         builder.build()
-        build_dir = os.path.join(docs_dir, '_readthedocs_build', 'html')
-        self.assertIn('index.html', os.listdir(build_dir))
-
-        shutil.rmtree(os.path.join(docs_dir, '_readthedocs_build'))
+        self.assertIn('index.html', os.listdir(state.output_path))
+        shutil.rmtree(state.output_path)
 
     def test_total_build(self):
 
@@ -39,7 +37,6 @@ class TestState(TestCase):
         builder.setup_environment()
         # print builder.append_conf()
         builder.build()
-        build_dir = os.path.join(self.root, '_readthedocs_build', 'html')
-        self.assertIn('index.html', os.listdir(build_dir))
+        self.assertIn('index.html', os.listdir(state.output_path))
 
         shutil.rmtree(self.root)

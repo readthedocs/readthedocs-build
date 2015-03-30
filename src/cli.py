@@ -85,7 +85,7 @@ def main(args, options=None):
             state.output_path = os.path.normpath(os.path.join(os.getcwd(), output_path))
 
     os.chdir(state.root)
-    BuilderClass = loading.get('sphinx')
+    BuilderClass = loading.get(state.documentation_type)
     builder = BuilderClass(state=state)
 
     print "Building docs to " + state.output_path

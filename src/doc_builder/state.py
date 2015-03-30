@@ -201,9 +201,12 @@ class BuildState(VCSMixin, VersionMixin):
         else:
             self.root = os.path.normpath(os.path.join(os.getcwd(), root))
 
-        if 'output_path' not in self.__dict__:
+        if self.output_path == None:
             self.output_path = os.path.join(root, 'readthedocs_output')
-        if 'env_path' not in self.__dict__:
+        elif not os.path.isabs(self.output_path):
+            self.output_path = os.path.normpath(os.path.join(os.getcwd(), self.output_path))
+
+        if self.env_path == None:
             self.env_path = os.path.join(root, 'venv')
 
     @classmethod

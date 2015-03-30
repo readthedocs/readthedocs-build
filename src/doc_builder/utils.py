@@ -1,3 +1,4 @@
+import yaml
 import sys
 import json
 import os
@@ -82,6 +83,23 @@ def safe_write(filename, contents):
         fh.write(contents.encode('utf-8', 'ignore'))
         fh.close()
 
+def _serialize(obj):
+    """Recursively walk object's hierarchy."""
+    if isinstance(obj, (bool, int, long, float, basestring)):
+        return obj
+    elif isinstance(obj, dict):
+        obj = obj.copy()
+        for key in obj:
+            obj[key] = _serialize(obj[key])
+        return obj
+    elif isinstance(obj, list):
+        return [_serialize(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(_serialize([item for item in obj]))
+    elif hasattr(obj, '__dict__'):
+        return _serialize(obj.__dict__)
+    else:
+        return repr(obj)  # Don't know how to handle, convert to string
 
 def obj_to_json(obj):
     """Represent instance of a class as JSON.
@@ -90,25 +108,17 @@ def obj_to_json(obj):
     Return:
     String that reprent JSON-encoded object.
     """
-    def serialize(obj):
-        """Recursively walk object's hierarchy."""
-        if isinstance(obj, (bool, int, long, float, basestring)):
-            return obj
-        elif isinstance(obj, dict):
-            obj = obj.copy()
-            for key in obj:
-                obj[key] = serialize(obj[key])
-            return obj
-        elif isinstance(obj, list):
-            return [serialize(item) for item in obj]
-        elif isinstance(obj, tuple):
-            return tuple(serialize([item for item in obj]))
-        elif hasattr(obj, '__dict__'):
-            return serialize(obj.__dict__)
-        else:
-            return repr(obj)  # Don't know how to handle, convert to string
-    return json.dumps(serialize(obj))
+    return json.dumps(_serialize(obj))
 
+
+def obj_to_yaml(obj):
+    """Represent instance of a class as JSON.
+    Arguments:
+    obj -- any object
+    Return:
+    String that reprent JSON-encoded object.
+    """
+    return yaml.dump(_serialize(obj))
 
 class Capturing(list):
 

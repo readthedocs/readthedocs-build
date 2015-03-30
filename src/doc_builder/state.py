@@ -185,6 +185,9 @@ class BuildState(VCSMixin, VersionMixin):
     REPO_LOCK_SECONDS = 30
     HTML_ONLY = []
 
+    env_path = None
+    output_path = None
+
     def __init__(self, root, **kwargs):
 
         for key, val in self.__class__.__dict__.iteritems():
@@ -200,11 +203,12 @@ class BuildState(VCSMixin, VersionMixin):
         if 'env_path' not in self.__dict__:
             self.env_path = os.path.join(root, 'venv')
 
-    def get_build_state(self, path):
+    @classmethod
+    def from_build_state(self, path):
         """
         Generate the build state for a version.
         """
-        log.debug("Checking for json config")
+        log.debug("Checking for yaml config")
         try:
             rtd_yaml = open(path)
             yaml_obj = yaml.load(rtd_yaml)
@@ -213,11 +217,12 @@ class BuildState(VCSMixin, VersionMixin):
                 # the canonical list of allowed user editable fields.
                 if key not in self.__dict__:
                     del yaml_obj[key]
+                    print "Discarding invalid config key: %s" % key
             log.debug("Updated from JSON.")
         except IOError:
             log.debug("No .readthedocs.yml found.")
-        return self.__class__(**yaml_obj)
+        return BuildState(**yaml_obj)
 
+    @classmethod
     def from_dict_obj(self, in_dict):
-        for kwarg, val in in_dict.items():
-            setattr(self, kwarg, val)
+        return BuildState(**in_dict)

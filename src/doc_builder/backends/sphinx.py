@@ -93,6 +93,10 @@ class BaseSphinx(BaseBuilder):
         outfile.write(rtd_string)
         outfile.close()
 
+    def clean_conf(self):
+        print "Cleaning written config files"
+        os.remove(self.state.rtd_json_file)
+        os.remove(self.state.rtd_conf_file)
 
 
 

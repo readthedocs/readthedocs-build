@@ -2,6 +2,7 @@ execfile('conf.py')
 
 from doc_builder.state import BuildState
 import sphinx_rtd_theme 
+import os
 
 # JSON of the state object
 import json
@@ -16,11 +17,20 @@ if 'html_static_path' in globals():
 else:
     html_static_path = ['_static', state.STATIC_PATH]
 
+T_PATH = os.path.join(state.TEMPLATE_PATH, 'sphinx')
+
+#Add RTD Template Path.
+if 'templates_path' in globals():
+    templates_path.insert(0, T_PATH)
+else:
+    templates_path = [T_PATH, 'templates', '_templates',
+                      '.templates']
+
 # Add RTD Theme Path. 
 if 'html_theme_path' in globals():
-    html_theme_path.append(state.TEMPLATE_PATH)
+    html_theme_path.append(T_PATH)
 else:
-    html_theme_path = ['_themes', state.TEMPLATE_PATH]
+    html_theme_path = ['_themes', T_PATH]
 
 # Add custom RTD extension
 if 'extensions' in globals():

@@ -196,7 +196,10 @@ class BuildState(VCSMixin, VersionMixin):
         for kwarg, val in kwargs.items():
             setattr(self, kwarg, val)
 
-        self.root = root
+        if os.path.isabs(root):
+            self.root = root
+        else:
+            self.root = os.path.normpath(os.path.join(os.getcwd(), root))
 
         if 'output_path' not in self.__dict__:
             self.output_path = os.path.join(root, 'readthedocs_output')

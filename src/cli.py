@@ -39,7 +39,7 @@ def main(args, options=None):
     :param: config - Where the readthedocs.yml config is located
 
     """
-    output_path = options.get('output', os.path.join(os.getcwd(), 'readthedocs_build'))
+    output_path = options.get('output', None)
     full = options.get('full', False)
     _open = options.get('open', False)
     config = options.get('config', None)
@@ -77,15 +77,18 @@ def main(args, options=None):
     #     docs_dir = os.getcwd()
     #     state = BuildState(root=docs_dir, output_path=output_path)
 
-
     # State keeping
-    os.chdir(state.ROOT_URLCONF = '')
-    state.output_path = output_path
+    if output_path:
+        if os.path.isabs(output_path):
+            state.output_path = output_path
+        else:
+            state.output_path = os.path.normpath(os.path.join(os.getcwd(), output_path))
 
+    os.chdir(state.root)
     BuilderClass = loading.get('sphinx')
     builder = BuilderClass(state=state)
 
-    print "Building docs to " + output_path
+    print "Building docs to " + state.output_path
 
     if temp:
         print "Checking out code to %s" % docs_dir

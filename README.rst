@@ -5,8 +5,44 @@ This module is the main building interface to Read the Docs.
 It has no explicit dependency on RTD code itself,
 and can be used outside of RTD to test your builds.
 
-An example use of this library is:
+.. warning:: This code is still under active development and isn't considered stable.
+             Please report bugs you find and contribute back if you are so inclined.
 
+Install
+-------
+
+Install with pip::
+
+    pip install readthedocs-build
+
+CLI Use
+-------
+
+Running a build is simple::
+
+	rtd-build 
+
+This will search for a ``readthedocs.yml`` file or a ``conf.py`` file,
+and build your documentation.
+It will use your local Python environment.
+
+Using a specific ``readthedocs.yml`` file::
+
+	rtd-build --config=foo/rtd.yml
+
+You can set a specific output directory::
+
+	rtd-build --output=html_dir
+
+Run a fully isolated build, the most similar to our Read the Docs hosting environment::
+
+	rtd-build --full --output=html_dir
+
+Library Use
+-----------
+
+
+An example use of this library is:
 
 .. code-block:: python
 
@@ -48,17 +84,3 @@ You can either use your existing environment with our builder code installed,
 or allow our builder to create a fully isolated environment for itself.
 A fully isolated environment is much closer to our production build environment for testing purposes.
 
-Using
-~~~~~
-
-Running a build is simple::
-
-	rtd-build 
-
-You can set a specific output directory::
-
-	rtd-build --output=html_dir
-
-Run a fully isolated build::
-
-	rtd-build --full --output=html_dir

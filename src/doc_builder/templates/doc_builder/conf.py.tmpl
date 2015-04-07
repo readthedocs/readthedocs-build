@@ -1,5 +1,6 @@
 execfile('conf.py')
 
+
 from doc_builder.state import BuildState
 import sphinx_rtd_theme 
 import os
@@ -35,8 +36,11 @@ else:
 # Add custom RTD extension
 if 'extensions' in globals():
     extensions.append("readthedocs_ext.readthedocs")
+    #extensions.append("sphinxcontrib.examplecode")
+    extensions.append("autoapi.extension")
 else:
-    extensions = ["readthedocs_ext.readthedocs"]
+    #extensions = ["readthedocs_ext.readthedocs", "sphinxcontrib.examplecode", "autoapi.extension"]
+    extensions = ["readthedocs_ext.readthedocs", "autoapi.extension"]
 
 # Add RTD Theme only if they aren't overriding it already
 using_rtd_theme = False
@@ -74,7 +78,7 @@ context = {
     'PRODUCTION_DOMAIN': state.PRODUCTION_DOMAIN,
     'versions': [],
     'downloads': [],
-    'slug': state.version,
+    'slug': state.project,
     'name': state.project,
     'rtd_language': state.language,
     'canonical_url': state.clean_canonical_url,

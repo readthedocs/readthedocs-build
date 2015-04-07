@@ -152,6 +152,7 @@ class BuildState(VCSMixin, VersionMixin):
     root = None
     project = None
     version = None
+    config_dir = None  # Path for readthedocs.yml file
 
     # VCS
     repo = ''
@@ -199,15 +200,20 @@ class BuildState(VCSMixin, VersionMixin):
         if os.path.isabs(root):
             self.root = root
         else:
-            self.root = os.path.normpath(os.path.join(os.getcwd(), root))
+            if self.config_dir:
+                self.root = os.path.normpath(os.path.join(self.config_dir, root))
+            else:
+                self.root = os.path.normpath(os.path.join(os.getcwd(), root))
 
-        if self.output_path == None:
+        if self.output_path is None:
             self.output_path = os.path.join(root, 'readthedocs_output')
         elif not os.path.isabs(self.output_path):
-            self.output_path = os.path.normpath(os.path.join(os.getcwd(), self.output_path))
+            self.output_path = os.path.normpath(os.path.join(self.root, self.output_path))
 
-        if self.env_path == None:
+        if self.env_path is None:
             self.env_path = os.path.join(root, 'venv')
+        elif not os.path.isabs(self.env_path):
+            self.env_path = os.path.normpath(os.path.join(self.root, self.env_path))
 
     @classmethod
     def from_build_state(self, path):
@@ -227,6 +233,7 @@ class BuildState(VCSMixin, VersionMixin):
             log.debug("Updated from JSON.")
         except IOError:
             log.debug("No .readthedocs.yml found.")
+        yaml_obj['config_dir'] = os.path.dirname(os.path.normpath(path))
         return BuildState(**yaml_obj)
 
     @classmethod

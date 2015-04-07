@@ -103,6 +103,6 @@ def main(args, options=None):
         builder.clean_conf()
 
     if _open:
-        to_open = 'file://' + os.path.join(docs_dir, state.output_path, 'index.html')
+        to_open = 'file://' + os.path.join(state.output_path, 'index.html')
         print "Opening %s" % to_open
         webbrowser.open(to_open)

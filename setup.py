@@ -3,7 +3,9 @@ try:
     from setuptools import setup, find_packages
     extra_setup = dict(
         zip_safe=True,
-        install_requires=[],
+        install_requires=[
+            "PyYAML>=3.0"
+        ],
     )
 except ImportError:
     from distutils.core import setup

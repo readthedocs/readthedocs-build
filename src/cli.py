@@ -62,7 +62,7 @@ def main(args, options=None):
             state = BuildState.from_build_state(matches[0])
         elif len(matches) > 1:
             print "ERROR: Multiple config files found: "
-            print matches.join('\n')
+            print '\n'.join(matches)
             sys.exit(1)
         else:
             print "No configuration file given, using defaults"

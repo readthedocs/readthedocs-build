@@ -8,6 +8,7 @@ try:
             "Sphinx>=1.2.2",
             "Docutils",
             "sphinx-autobuild",
+            "readthedocs-sphinx-ext",
         ],
     )
 except ImportError:
@@ -18,6 +19,7 @@ except ImportError:
             "Sphinx (>=1.2.2)",
             "Docutils",
             "sphinx-autobuild",
+            "readthedocs-sphinx-ext",
         ]
     )
 

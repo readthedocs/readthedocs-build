@@ -5,7 +5,7 @@ try:
         zip_safe=True,
         install_requires=[
             "PyYAML>=3.0",
-            "Sphinx>=1.2.2",
+            "Sphinx>=1.3",
             "Docutils",
             "sphinx-autobuild",
             "readthedocs-sphinx-ext",
@@ -16,7 +16,7 @@ except ImportError:
     extra_setup = dict(
         requires=[
             "PyYAML (>=3.0)",
-            "Sphinx (>=1.2.2)",
+            "Sphinx (>=1.3)",
             "Docutils",
             "sphinx-autobuild",
             "readthedocs-sphinx-ext",

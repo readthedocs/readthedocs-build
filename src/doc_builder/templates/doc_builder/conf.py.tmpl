@@ -37,10 +37,10 @@ else:
 if 'extensions' in globals():
     extensions.append("readthedocs_ext.readthedocs")
     #extensions.append("sphinxcontrib.examplecode")
-    extensions.append("autoapi.extension")
+    #extensions.append("autoapi.extension")
 else:
     #extensions = ["readthedocs_ext.readthedocs", "sphinxcontrib.examplecode", "autoapi.extension"]
-    extensions = ["readthedocs_ext.readthedocs", "autoapi.extension"]
+    extensions = ["readthedocs_ext.readthedocs"]
 
 # Add RTD Theme only if they aren't overriding it already
 using_rtd_theme = False

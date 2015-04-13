@@ -24,10 +24,10 @@ if 'source_suffix' in globals():
 else:
     source_suffix = ['.rst', '.md']
 
-if 'parsers' in globals():
-    parsers['.md'] = CommonMarkParser
+if 'source_parsers' in globals():
+    source_parsers['.md'] = CommonMarkParser
 else:
-    parsers = {
+    source_parsers = {
         '.md': CommonMarkParser,
     }
 

@@ -9,6 +9,7 @@ try:
             "Docutils",
             "sphinx-autobuild",
             "readthedocs-sphinx-ext",
+            "recommonmark",
         ],
     )
 except ImportError:
@@ -20,6 +21,7 @@ except ImportError:
             "Docutils",
             "sphinx-autobuild",
             "readthedocs-sphinx-ext",
+            "recommonmark",
         ]
     )
 

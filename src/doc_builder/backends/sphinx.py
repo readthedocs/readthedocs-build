@@ -64,11 +64,11 @@ class BaseSphinx(BaseBuilder):
         Create ``conf.py`` if it doesn't exist.
         """
         docs_dir = self.docs_dir()
-        conf_template = render.render_to_string('doc_builder/conf.py.conf',
-                                                {'project': self.state.project,
-                                                 'version': self.state.version,
-                                                 'template_dir': TEMPLATE_DIR,
-                                                 })
+        conf_template = render.render_to_string('sphinx/conf.py.conf',
+                                                project=self.state.project,
+                                                version=self.state.version,
+                                                template_dir=TEMPLATE_DIR,
+                                                )
         conf_file = os.path.join(docs_dir, 'conf.py')
         safe_write(conf_file, conf_template)
 

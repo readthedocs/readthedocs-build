@@ -4,6 +4,9 @@ import subprocess
 import tempfile
 import webbrowser
 
+import SimpleHTTPServer
+import SocketServer
+
 from doc_builder.loader import loading
 from doc_builder.state import BuildState
 
@@ -43,6 +46,7 @@ def main(args, options=None):
     full = options.get('full', False)
     _open = options.get('open', False)
     config = options.get('config', None)
+    serve = options.get('serve', None)
 
     if full:
         temp = env = True
@@ -66,6 +70,14 @@ def main(args, options=None):
             sys.exit(1)
         else:
             print "No configuration file given, using defaults"
+
+    if serve:
+        os.chdir(state.output_path)
+        Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
+        httpd = SocketServer.TCPServer(("", 8001), Handler)
+        print "serving at port", 8001
+        httpd.serve_forever()
+
 
     if temp:
         docs_dir = tempfile.mkdtemp()

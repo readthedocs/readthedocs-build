@@ -1,7 +1,10 @@
 execfile('conf.py')
 
 
+from six import string_types
+
 from doc_builder.state import BuildState
+from recommonmark.parser import CommonMarkParser
 import sphinx_rtd_theme 
 import os
 
@@ -11,6 +14,22 @@ state_dict = json.load(open('readthedocs-conf.json'))
 
 
 state = BuildState(**state_dict)
+
+# Markdown Support
+if 'source_suffix' in globals():
+    if isinstance(source_suffix, string_types):
+        source_suffix = [source_suffix, '.md']
+    else:
+        source_suffix.append('.md')
+else:
+    source_suffix = ['.rst', '.md']
+
+if 'source_parsers' in globals():
+    source_parsers['.md'] = CommonMarkParser
+else:
+    source_parsers = {
+        '.md': CommonMarkParser,
+    }
 
 # Add RTD Static Path. Add to the end because it overwrites previous files.
 if 'html_static_path' in globals():

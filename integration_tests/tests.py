@@ -14,7 +14,7 @@ class TestState(TestCase):
     def test_local_build(self):
 
         test_dir = os.path.dirname(os.path.realpath(__file__))
-        docs_dir = os.path.normpath(os.path.join(test_dir, os.pardir, os.pardir, 'docs'))
+        docs_dir = os.path.normpath(os.path.join(test_dir, os.pardir, 'docs'))
 
         state = BuildState(root=docs_dir)
         BuilderClass = loading.get('sphinx')

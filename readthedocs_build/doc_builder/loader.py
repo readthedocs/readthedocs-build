@@ -1,7 +1,7 @@
 from importlib import import_module
 
-mkdocs = import_module('doc_builder.backends.mkdocs')
-sphinx = import_module('doc_builder.backends.sphinx')
+mkdocs = import_module('readthedocs_build.doc_builder.backends.mkdocs')
+sphinx = import_module('readthedocs_build.doc_builder.backends.sphinx')
 
 loading = {
     # Possible HTML Builders

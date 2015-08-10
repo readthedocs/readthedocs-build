@@ -1,6 +1,6 @@
 
-from doc_builder.constants import BuildException
-from vcs_support.base import BaseVCS, VCSVersion
+from readthedocs_build.doc_builder.constants import BuildException
+from readthedocs_build.vcs_support.base import BaseVCS, VCSVersion
 
 
 class Backend(BaseVCS):

@@ -5,9 +5,9 @@ import os
 import urlparse
 import logging
 
-from vcs_support.base import VCSProject
-from vcs_support.backends import backend_cls
-from doc_builder.constants import BuildException, SITE_ROOT
+from readthedocs_build.vcs_support.base import VCSProject
+from readthedocs_build.vcs_support.backends import backend_cls
+from readthedocs_build.doc_builder.constants import BuildException, SITE_ROOT
 
 
 log = logging.getLogger(__name__)

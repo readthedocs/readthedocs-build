@@ -5,8 +5,8 @@ import logging
 import json
 import yaml
 
-from doc_builder.base import BaseBuilder
-from doc_builder.utils import run
+from readthedocs_build.doc_builder.base import BaseBuilder
+from readthedocs_build.doc_builder.utils import run
 
 log = logging.getLogger(__name__)
 

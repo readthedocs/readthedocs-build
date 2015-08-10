@@ -7,8 +7,8 @@ import webbrowser
 import SimpleHTTPServer
 import SocketServer
 
-from doc_builder.loader import loading
-from doc_builder.state import BuildState
+from readthedocs_build.doc_builder.loader import loading
+from readthedocs_build.doc_builder.state import BuildState
 
 
 def arg_to_option(arg):

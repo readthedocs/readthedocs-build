@@ -5,8 +5,8 @@ import shutil
 
 from unittest import TestCase
 
-from doc_builder.loader import loading
-from doc_builder.state import BuildState
+from readthedocs_build.doc_builder.loader import loading
+from readthedocs_build.doc_builder.state import BuildState
 
 
 class TestState(TestCase):

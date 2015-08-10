@@ -48,8 +48,8 @@ An example use of this library is:
 
 	import os
 
-	from doc_builder.loader import loading
-	from doc_builder.state import BuildState
+	from readthedocs_build.doc_builder.loader import loading
+	from readthedocs_build.doc_builder.state import BuildState
 
 	docs_dir = os.getcwd()
 

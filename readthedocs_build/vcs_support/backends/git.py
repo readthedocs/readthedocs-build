@@ -4,10 +4,10 @@ import csv
 import os
 from StringIO import StringIO
 
-from doc_builder.constants import BuildException
-from doc_builder.utils import run
-#from vcs_support.backends.github import GithubContributionBackend
-from vcs_support.base import BaseVCS, VCSVersion
+from readthedocs_build.doc_builder.constants import BuildException
+from readthedocs_build.doc_builder.utils import run
+#from readthedocs_build.vcs_support.backends.github import GithubContributionBackend
+from readthedocs_build.vcs_support.base import BaseVCS, VCSVersion
 
 log = logging.getLogger(__name__)
 

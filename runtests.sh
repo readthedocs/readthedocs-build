@@ -1,1 +1,1 @@
-py.test -s src/doc_builder/tests.py
+py.test -s readthedocs_build/doc_builder/tests.py

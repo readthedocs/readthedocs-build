@@ -33,8 +33,8 @@ setup(
     url='https://readthedocs.org',
     license='MIT',
     description='Build infrastructure for Read the Docs',
-    package_dir={'': 'src'},
-    packages=find_packages('src'),
+    packages=find_packages(),
+    include_package_data=True,
     long_description=codecs.open("README.rst", "r", "utf-8").read(),
     entry_points={
         'console_scripts': [

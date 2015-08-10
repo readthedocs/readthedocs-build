@@ -1,5 +1,5 @@
 from jinja2 import Environment, FileSystemLoader
-from doc_builder.constants import TEMPLATE_DIR
+from readthedocs_build.doc_builder.constants import TEMPLATE_DIR
 
 env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 

@@ -7,10 +7,10 @@ import logging
 import zipfile
 from importlib import import_module
 
-from doc_builder.base import BaseBuilder
-from doc_builder.utils import run, safe_write, obj_to_json, Capturing
-from doc_builder import render
-from doc_builder.constants import BuildException, TEMPLATE_DIR
+from readthedocs_build.doc_builder.base import BaseBuilder
+from readthedocs_build.doc_builder.utils import run, safe_write, obj_to_json, Capturing
+from readthedocs_build.doc_builder import render
+from readthedocs_build.doc_builder.constants import BuildException, TEMPLATE_DIR
 
 import sphinx_rtd_theme
 

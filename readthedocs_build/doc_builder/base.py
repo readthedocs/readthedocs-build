@@ -6,11 +6,11 @@ import shutil
 
 from sphinx.util.osutil import cd
 
-from doc_builder.constants import LOG_TEMPLATE, BuildException
-from doc_builder import signals
-from doc_builder.utils import run
+from readthedocs_build.doc_builder.constants import LOG_TEMPLATE, BuildException
+from readthedocs_build.doc_builder import signals
+from readthedocs_build.doc_builder.utils import run
 
-from vcs_support.utils import NonBlockingLock
+from readthedocs_build.vcs_support.utils import NonBlockingLock
 
 
 log = logging.getLogger(__name__)
@@ -167,7 +167,7 @@ class BaseBuilder(object):
         This handles the actual building of the documentation
         """
 
-        from doc_builder.loader import loading as builder_loading
+        from readthedocs_build.doc_builder.loader import loading as builder_loading
         from projects.tasks import move_files
 
         results = {}

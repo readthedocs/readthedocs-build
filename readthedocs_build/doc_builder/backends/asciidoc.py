@@ -1,8 +1,8 @@
 import os
 import logging
 
-from doc_builder.base import BaseBuilder, restoring_chdir
-from doc_builder.utils import run
+from readthedocs_build.doc_builder.base import BaseBuilder, restoring_chdir
+from readthedocs_build.doc_builder.utils import run
 
 log = logging.getLogger(__name__)
 

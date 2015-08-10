@@ -1,0 +1,13 @@
+strictness: low
+
+test-warnings: false
+doc-warnings: true
+
+ignore-patterns:
+  - /migrations/
+
+pep8:
+  full: true
+
+mccabe:
+  run: false

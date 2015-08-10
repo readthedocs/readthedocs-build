@@ -4,3 +4,4 @@ _build
 readthedocs_output
 autoapi
 _build_rtd
+/.tox/

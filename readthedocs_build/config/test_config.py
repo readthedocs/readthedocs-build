@@ -1,5 +1,6 @@
-import os
+from mock import patch
 from pytest import raises
+import os
 
 from ..testing.utils import apply_fs
 from .config import InvalidConfig
@@ -127,3 +128,23 @@ def test_build_config_invalid_base():
     with raises(InvalidConfig) as excinfo:
         build.validate()
     assert excinfo.value.code == BASE_INVALID
+
+
+def test_validate_project_config():
+    with patch.object(BuildConfig, 'validate') as build_validate:
+        project = ProjectConfig([
+            BuildConfig(
+                minimal_config,
+                source_file='readthedocs.yml',
+                source_position=0)
+        ])
+        project.validate()
+        assert build_validate.call_count == 1
+
+
+def test_load_calls_validate(tmpdir):
+    apply_fs(tmpdir, minimal_config_dir)
+    base = str(tmpdir)
+    with patch.object(BuildConfig, 'validate') as build_validate:
+        load(base)
+        assert build_validate.call_count == 1

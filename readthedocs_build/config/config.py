@@ -5,6 +5,9 @@ from .parser import ParseError
 from .parser import parse
 
 
+__all__ = ('load', 'BuildConfig', 'InvalidConfig', 'ProjectConfig')
+
+
 CONFIG_FILENAME = 'readthedocs.yml'
 
 
@@ -96,13 +99,17 @@ class ProjectConfig(list):
     Wrapper for multiple build configs.
     """
 
-    pass
+    def validate(self):
+        for build in self:
+            build.validate()
 
 
 def load(path):
     """
     Load a project configuration and all the contained build configs for a
     given path. That is usually the root of the project.
+
+    The config will be validated.
     """
 
     config_files = list(find_all(path, CONFIG_FILENAME))
@@ -127,4 +134,7 @@ def load(path):
                     source_file=filename,
                     source_position=i)
                 build_configs.append(build_config)
-    return ProjectConfig(build_configs)
+
+    project_config = ProjectConfig(build_configs)
+    project_config.validate()
+    return project_config

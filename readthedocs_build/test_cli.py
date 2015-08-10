@@ -1,15 +1,19 @@
+from click.testing import CliRunner
 import os
-from pytest import raises
 
 from .cli import main
 from .testing.utils import apply_fs
 
 
+def run(params):
+    runner = CliRunner()
+    return runner.invoke(main, params)
+
+
 def test_main_fails_with_exit_code_1_if_no_config_found(tmpdir):
     with tmpdir.as_cwd():
-        with raises(SystemExit) as excinfo:
-            main()
-    assert excinfo.value.code == 1
+        result = run([])
+        assert result.exit_code == 1
 
 
 def test_main_resets_cwd(tmpdir):
@@ -23,7 +27,7 @@ def test_main_resets_cwd(tmpdir):
 
     with tmpdir.as_cwd():
         old_cwd = os.getcwd()
-        main(path='goodpath')
+        run(['goodpath'])
         assert os.getcwd() == old_cwd
 
 
@@ -32,12 +36,14 @@ def test_main_takes_path_argument(tmpdir):
         'badpath': {},
         'goodpath': {
             'readthedocs.yml': '''
-
+type: sphinx
             '''
         }
     })
 
     with tmpdir.as_cwd():
-        with raises(SystemExit):
-            main(path='badpath')
-        main(path='goodpath')
+        result = run(['badpath'])
+        assert result.exit_code == 1
+
+        result = run(['goodpath'])
+        assert result.exit_code == 0, result.output

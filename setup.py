@@ -10,6 +10,7 @@ try:
             "sphinx-autobuild",
             "readthedocs-sphinx-ext",
             "recommonmark",
+            "click>=4.0",
         ],
     )
 except ImportError:
@@ -22,6 +23,7 @@ except ImportError:
             "sphinx-autobuild",
             "readthedocs-sphinx-ext",
             "recommonmark",
+            "click (>=4.0)",
         ]
     )
 
@@ -38,9 +40,7 @@ setup(
     long_description=codecs.open("README.rst", "r", "utf-8").read(),
     entry_points={
         'console_scripts': [
-            'readthedocs-build=legacy_cli:run_main',
-            'rtd-build=legacy_cli:run_main',
-            'rtfd-build=legacy_cli:run_main',
+            'rtd-build=readthedocs_build.cli:main',
         ]
     },
     **extra_setup

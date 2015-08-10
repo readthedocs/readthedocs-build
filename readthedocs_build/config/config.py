@@ -1,3 +1,5 @@
+import os
+
 from .find import find_all
 from .parser import ParseError
 from .parser import parse
@@ -6,6 +8,7 @@ from .parser import parse
 CONFIG_FILENAME = 'readthedocs.yml'
 
 
+BASE_INVALID = 'type-invalid'
 CONFIG_SYNTAX_INVALID = 'config-syntax-invalid'
 CONFIG_REQUIRED = 'config-required'
 TYPE_REQUIRED = 'type-required'
@@ -30,10 +33,11 @@ class BuildConfig(dict):
 
     """
 
+    BASE_INVALID_MESSAGE = 'Invalid value for base: {base}'
     TYPE_REQUIRED_MESSAGE = 'Missing key "type"'
     INVALID_TYPE_MESSAGE = 'Invalid type "{type}". Valid values are {valid_types}'
 
-    def __init__(self, raw_config, source_file=None, source_position=None):
+    def __init__(self, raw_config, source_file, source_position):
         self.raw_config = raw_config
         self.source_file = source_file
         self.source_position = source_position
@@ -70,7 +74,21 @@ class BuildConfig(dict):
                         '"{}"'.format(valid)
                         for valid in self.get_valid_types())),
                 code=TYPE_INVALID)
+
+        if 'base' in self.raw_config:
+            base = self.raw_config['base']
+            if not isinstance(base, basestring):
+                self.error(self.BASE_INVALID_MESSAGE.format(
+                    base=repr(base)), code=BASE_INVALID)
+            base = os.path.join(
+                os.path.dirname(self.source_file),
+                self.raw_config['base'])
+        else:
+            base = os.path.dirname(self.source_file)
+        base = os.path.abspath(base)
+
         self['type'] = type
+        self['base'] = base
 
 
 class ProjectConfig(list):

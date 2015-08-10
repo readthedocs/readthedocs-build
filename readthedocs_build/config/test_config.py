@@ -6,8 +6,9 @@ from .config import InvalidConfig
 from .config import load
 from .config import BuildConfig
 from .config import ProjectConfig
-from .config import TYPE_REQUIRED
+from .config import BASE_INVALID
 from .config import TYPE_INVALID
+from .config import TYPE_REQUIRED
 
 
 minimal_config = {
@@ -82,20 +83,47 @@ def test_build_config_has_source_position(tmpdir):
 
 
 def test_build_requires_type():
-    build = BuildConfig({})
+    build = BuildConfig({},
+                        source_file=None,
+                        source_position=None)
     with raises(InvalidConfig) as excinfo:
         build.validate()
     assert excinfo.value.code == TYPE_REQUIRED
 
 
 def test_build_requires_valid_type():
-    build = BuildConfig({'type': 'unknown'})
+    build = BuildConfig({'type': 'unknown'},
+                        source_file=None,
+                        source_position=None)
     with raises(InvalidConfig) as excinfo:
         build.validate()
     assert excinfo.value.code == TYPE_INVALID
 
 
 def test_valid_build_config():
-    build = BuildConfig(minimal_config)
+    build = BuildConfig(minimal_config,
+                        source_file='readthedocs.yml',
+                        source_position=0)
     build.validate()
     assert build['type'] == 'sphinx'
+
+
+def test_build_config_base():
+    basepath = os.path.abspath(os.getcwd())
+    source_file = os.path.join(basepath, 'configs', 'readthedocs.yml')
+    build = BuildConfig({
+        'type': 'sphinx',
+        'base': '../docs'
+    }, source_file=source_file, source_position=0)
+    build.validate()
+    assert build['base'] == os.path.join(basepath, 'docs')
+
+
+def test_build_config_invalid_base():
+    build = BuildConfig({
+        'type': 'sphinx',
+        'base': 1,
+    }, source_file='readthedocs.yml', source_position=0)
+    with raises(InvalidConfig) as excinfo:
+        build.validate()
+    assert excinfo.value.code == BASE_INVALID

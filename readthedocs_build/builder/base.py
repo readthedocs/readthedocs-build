@@ -35,9 +35,18 @@ class BaseBuilder(object):
         """
         self.setup()
         self.build_html()
+        self.build_search_data()
         self.cleanup()
 
     def build_html(self):
+        # Must be overriden by subclass.
+        pass
+
+    def build_search_data(self):
+        """
+        Subclasses should override this method and build search data in a JSON
+        format in the ``search_data`` output directory.
+        """
         # Must be overriden by subclass.
         pass
 

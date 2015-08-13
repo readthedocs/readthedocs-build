@@ -32,6 +32,18 @@ def test_build_calls_build_html():
             build_html.assert_called_with()
 
 
+def test_build_calls_build_search_data():
+    build_config = {'name': 'docs', 'type': 'sphinx'}
+    mock_venv = patch('readthedocs_build.builder.base.VirtualEnv')
+    mock_build_html = patch.object(BaseBuilder, 'build_html')
+    mock_build_search_data = patch.object(BaseBuilder, 'build_search_data')
+    with mock_venv, mock_build_html:
+        with mock_build_search_data as build_search_data:
+            builder = BaseBuilder(build_config=build_config)
+            builder.build()
+            build_search_data.assert_called_with()
+
+
 def test_setup_creates_virtualenv():
     build_config = {'name': 'docs', 'type': 'sphinx'}
     builder = BaseBuilder(build_config=build_config)

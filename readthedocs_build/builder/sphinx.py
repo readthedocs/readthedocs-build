@@ -17,4 +17,12 @@ class SphinxBuilder(BaseBuilder):
     )
 
     def build_html(self):
-        raise NotImplementedError('TODO')
+        source_dir = self.get_source_directory()
+        out_dir = self.get_output_directory('html')
+        self.venv.python_run(
+            'sphinx-build', [
+                '-b',
+                'html',
+                source_dir,
+                out_dir,
+            ])

@@ -16,13 +16,20 @@ class SphinxBuilder(BaseBuilder):
         'Sphinx==1.3.1',
     )
 
-    def build_html(self):
+    def _run_sphinx_build(self, format, out_dir):
         source_dir = self.get_source_directory()
-        out_dir = self.get_output_directory('html')
         self.venv.python_run(
             'sphinx-build', [
                 '-b',
-                'html',
+                format,
                 source_dir,
                 out_dir,
             ])
+
+    def build_html(self):
+        out_dir = self.get_output_directory('html')
+        self._run_sphinx_build('html', out_dir)
+
+    def build_search_data(self):
+        out_dir = self.get_output_directory('search_data')
+        self._run_sphinx_build('json', out_dir)

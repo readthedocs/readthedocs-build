@@ -140,7 +140,10 @@ def test_valid_build_config():
                         source_file='readthedocs.yml',
                         source_position=0)
     build.validate()
+    assert build['name'] == 'docs'
     assert build['type'] == 'sphinx'
+    assert build['base']
+    assert build['output_base']
 
 
 def test_build_config_base(tmpdir):

@@ -7,6 +7,11 @@ from .cli import main
 from .testing.utils import apply_fs
 
 
+minimal_config = {
+    'readthedocs.yml': '''type: sphinx''',
+}
+
+
 def run(params):
     runner = CliRunner()
     # Patch ``build`` function to not test the actual build but the config
@@ -52,3 +57,22 @@ type: sphinx
 
         result = run(['goodpath'])
         assert result.exit_code == 0, result.output
+
+
+def test_main_attaches_outdir_to_env_config(tmpdir):
+    with apply_fs(tmpdir, minimal_config).as_cwd():
+        with patch('readthedocs_build.cli.build') as build:
+            run(['--outdir=out'])
+            args, kwargs = build.call_args
+            project_config = args[0]
+            assert project_config[0]['output_base'] == str(tmpdir.join('out'))
+
+
+def test_outdir_default(tmpdir):
+    with apply_fs(tmpdir, minimal_config).as_cwd():
+        with patch('readthedocs_build.cli.build') as build:
+            run([])
+            args, kwargs = build.call_args
+            project_config = args[0]
+            outdir = str(tmpdir.join('_readthedocs_build'))
+            assert project_config[0]['output_base'] == outdir

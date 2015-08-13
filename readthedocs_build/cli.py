@@ -28,7 +28,9 @@ def main(path, outdir):
     if path is None:
         path = os.getcwd()
 
-    env_config = {}
+    env_config = {
+        'output_base': outdir,
+    }
 
     with cd(path):
         try:

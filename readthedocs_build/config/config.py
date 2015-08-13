@@ -35,6 +35,8 @@ class BuildConfig(dict):
         >>> build_config['type']
         'sphinx'
 
+    You need to call ``validate`` before the config is ready to use. Also
+    setting the ``output_base`` is required before using it for a build.
     """
 
     BASE_INVALID_MESSAGE = 'Invalid value for base: {base}'
@@ -74,6 +76,10 @@ class BuildConfig(dict):
         - ``base`` is a valid directory and defaults to the directory of the
           ``readthedocs.yml`` config file if not set
         """
+
+        assert 'output_base' in self.env_config, (
+            '"output_base" required in "env_config"')
+        self['output_base'] = os.path.abspath(self.env_config['output_base'])
 
         type = self.raw_config.get('type', None)
         if not type:
@@ -116,6 +122,10 @@ class ProjectConfig(list):
     def validate(self):
         for build in self:
             build.validate()
+
+    def set_output_base(self, directory):
+        for build in self:
+            build['output_base'] = os.path.abspath(directory)
 
 
 def load(path, env_config):

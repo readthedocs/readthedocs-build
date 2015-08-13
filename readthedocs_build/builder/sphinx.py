@@ -5,9 +5,9 @@ class SphinxBuilder(BaseBuilder):
     """
     TODO:
 
-    - Build HTML
-    - Build HTML in htmldir format
-    - Build HTML in singlefile format
+    - Build JSON for search engine
+    - Build HTML in dirhtml format
+    - Build HTML in singlehtml format + local media build
     - Build PDF
     - Build ePUB
     """

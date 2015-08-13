@@ -42,7 +42,8 @@ class BuildConfig(dict):
     TYPE_REQUIRED_MESSAGE = 'Missing key "type"'
     INVALID_TYPE_MESSAGE = 'Invalid type "{type}". Valid values are {valid_types}'
 
-    def __init__(self, raw_config, source_file, source_position):
+    def __init__(self, env_config, raw_config, source_file, source_position):
+        self.env_config = env_config
         self.raw_config = raw_config
         self.source_file = source_file
         self.source_position = source_position
@@ -117,7 +118,7 @@ class ProjectConfig(list):
             build.validate()
 
 
-def load(path):
+def load(path, env_config):
     """
     Load a project configuration and all the contained build configs for a
     given path. That is usually the root of the project.
@@ -143,6 +144,7 @@ def load(path):
                     code=CONFIG_SYNTAX_INVALID)
             for i, config in enumerate(configs):
                 build_config = BuildConfig(
+                    env_config,
                     config,
                     source_file=filename,
                     source_position=i)

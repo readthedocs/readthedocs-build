@@ -28,9 +28,11 @@ def main(path, outdir):
     if path is None:
         path = os.getcwd()
 
+    env_config = {}
+
     with cd(path):
         try:
-            project_config = load(os.getcwd())
+            project_config = load(os.getcwd(), env_config)
         except InvalidConfig as error:
             sys.stderr.write('Error: {error}'.format(error=error))
             sys.exit(1)

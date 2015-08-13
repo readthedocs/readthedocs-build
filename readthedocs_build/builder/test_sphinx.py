@@ -1,11 +1,10 @@
 from mock import patch
 
-from ..testing.config import get_project_config
 from .sphinx import SphinxBuilder
 
 
 def test_setup_installs_sphinx():
-    build_config = get_project_config({'type': 'sphinx'})
+    build_config = {}
     builder = SphinxBuilder(build_config=build_config)
     with patch('readthedocs_build.builder.base.VirtualEnv'):
         builder.setup()

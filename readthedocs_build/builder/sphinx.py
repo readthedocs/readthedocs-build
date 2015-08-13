@@ -12,5 +12,9 @@ class SphinxBuilder(BaseBuilder):
     - Build ePUB
     """
 
+    python_dependencies = BaseBuilder.python_dependencies + (
+        'Sphinx==1.3.1',
+    )
+
     def build_html(self):
         raise NotImplementedError('TODO')

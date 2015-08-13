@@ -5,7 +5,6 @@ class SphinxBuilder(BaseBuilder):
     """
     TODO:
 
-    - Build JSON for search engine
     - Build HTML in dirhtml format
     - Build HTML in singlehtml format + local media build
     - Build PDF

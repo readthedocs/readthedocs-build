@@ -14,6 +14,19 @@ class VirtualEnv(object):
         self.base_path = tempfile.mkdtemp()
         self.setup()
 
+    def python_run(self, command_bin, args):
+        """
+        Execute a script from the virtualenv by using the bin/python from the
+        virtualenv. That prevents an issue with too long shbangs. See
+        https://github.com/rtfd/readthedocs.org/issues/994 for details.
+        """
+        python_bin = os.path.join(self.base_path, 'bin', 'python')
+        command_bin = os.path.join(self.base_path, 'bin', command_bin)
+        return run([
+            python_bin,
+            command_bin,
+        ] + list(args))
+
     def setup(self):
         exit_code = run([
             'virtualenv',
@@ -28,3 +41,7 @@ class VirtualEnv(object):
 
     def __del__(self):
         self.cleanup()
+
+    def install(self, package):
+        exit_code = self.python_run('pip', ['install', package])
+        assert exit_code == 0

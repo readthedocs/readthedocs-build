@@ -1,13 +1,18 @@
 from click.testing import CliRunner
+from mock import patch
 import os
 
+from .builder.base import BaseBuilder
 from .cli import main
 from .testing.utils import apply_fs
 
 
 def run(params):
     runner = CliRunner()
-    return runner.invoke(main, params)
+    # Patch ``build`` function to not test the actual build but the config
+    # parsing etc.
+    with patch.object(BaseBuilder, 'build'):
+        return runner.invoke(main, params)
 
 
 def test_main_fails_with_exit_code_1_if_no_config_found(tmpdir):

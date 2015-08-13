@@ -83,10 +83,20 @@ class BuildConfig(dict):
           ``readthedocs.yml`` config file if not set
         """
 
+        # Validate env_config.
+        self.validate_output_base()
+
+        # Validate raw_config. Order matters.
+        self.validate_name()
+        self.validate_type()
+        self.validate_base()
+
+    def validate_output_base(self):
         assert 'output_base' in self.env_config, (
             '"output_base" required in "env_config"')
         self['output_base'] = os.path.abspath(self.env_config['output_base'])
 
+    def validate_name(self):
         name = self.raw_config.get('name', None)
         if not name:
             self.error(self.NAME_REQUIRED_MESSAGE, code=NAME_REQUIRED)
@@ -98,6 +108,9 @@ class BuildConfig(dict):
                     name_re=name_re),
                 code=NAME_INVALID)
 
+        self['name'] = name
+
+    def validate_type(self):
         type = self.raw_config.get('type', None)
         if not type:
             self.error(self.TYPE_REQUIRED_MESSAGE, code=TYPE_REQUIRED)
@@ -110,6 +123,9 @@ class BuildConfig(dict):
                         for valid in self.get_valid_types())),
                 code=TYPE_INVALID)
 
+        self['type'] = type
+
+    def validate_base(self):
         if 'base' in self.raw_config:
             base = self.raw_config['base']
             if not isinstance(base, basestring):
@@ -127,8 +143,6 @@ class BuildConfig(dict):
                 self.BASE_NOT_A_DIR_MESSAGE.format(base=base),
                 code=BASE_NOT_A_DIR)
 
-        self['name'] = name
-        self['type'] = type
         self['base'] = base
 
 

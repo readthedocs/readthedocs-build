@@ -1,4 +1,5 @@
 from mock import patch
+from mock import DEFAULT
 from pytest import raises
 import os
 
@@ -94,42 +95,42 @@ def test_build_config_has_source_position(tmpdir):
 
 
 def test_config_requires_name():
-    build = BuildConfig(env_config,
-                        {'type': 'sphinx'},
+    build = BuildConfig({},
+                        {},
                         source_file=None,
                         source_position=None)
     with raises(InvalidConfig) as excinfo:
-        build.validate()
+        build.validate_name()
     assert excinfo.value.code == NAME_REQUIRED
 
 
 def test_build_requires_valid_name():
-    build = BuildConfig(env_config,
-                        {'name': 'with/slashes', 'type': 'sphinx'},
+    build = BuildConfig({},
+                        {'name': 'with/slashes'},
                         source_file=None,
                         source_position=None)
     with raises(InvalidConfig) as excinfo:
-        build.validate()
+        build.validate_name()
     assert excinfo.value.code == NAME_INVALID
 
 
 def test_config_requires_type():
-    build = BuildConfig(env_config,
+    build = BuildConfig({},
                         {'name': 'docs'},
                         source_file=None,
                         source_position=None)
     with raises(InvalidConfig) as excinfo:
-        build.validate()
+        build.validate_type()
     assert excinfo.value.code == TYPE_REQUIRED
 
 
 def test_build_requires_valid_type():
-    build = BuildConfig(env_config,
-                        {'name': 'docs', 'type': 'unknown'},
+    build = BuildConfig({},
+                        {'type': 'unknown'},
                         source_file=None,
                         source_position=None)
     with raises(InvalidConfig) as excinfo:
-        build.validate()
+        build.validate_type()
     assert excinfo.value.code == TYPE_INVALID
 
 
@@ -147,15 +148,11 @@ def test_build_config_base(tmpdir):
     with tmpdir.as_cwd():
         source_file = str(tmpdir.join('configs', 'readthedocs.yml'))
         build = BuildConfig(
-            env_config,
-            {
-                'name': 'docs',
-                'type': 'sphinx',
-                'base': '../docs'
-            },
+            {},
+            {'base': '../docs'},
             source_file=source_file,
             source_position=0)
-        build.validate()
+        build.validate_base()
         assert build['base'] == str(tmpdir.join('docs'))
 
 
@@ -163,33 +160,41 @@ def test_build_config_invalid_base(tmpdir):
     apply_fs(tmpdir, minimal_config)
     with tmpdir.as_cwd():
         build = BuildConfig(
-            env_config,
-            {
-                'name': 'docs',
-                'type': 'sphinx',
-                'base': 1,
-            },
+            {},
+            {'base': 1},
             source_file=str(tmpdir.join('readthedocs.yml')),
             source_position=0)
         with raises(InvalidConfig) as excinfo:
-            build.validate()
+            build.validate_base()
         assert excinfo.value.code == BASE_INVALID
 
 
 def test_build_config_base_not_a_dir(tmpdir):
     apply_fs(tmpdir, minimal_config)
     build = BuildConfig(
-        env_config,
-        {
-            'name': 'docs',
-            'type': 'sphinx',
-            'base': 'docs',
-        },
+        {},
+        {'base': 'docs'},
         source_file=str(tmpdir.join('readthedocs.yml')),
         source_position=0)
     with raises(InvalidConfig) as excinfo:
-        build.validate()
+        build.validate_base()
     assert excinfo.value.code == BASE_NOT_A_DIR
+
+
+def test_build_validate_calls_all_subvalidators(tmpdir):
+    apply_fs(tmpdir, minimal_config)
+    build = BuildConfig(
+        {},
+        {},
+        source_file=str(tmpdir.join('readthedocs.yml')),
+        source_position=0)
+    with patch.multiple(BuildConfig,
+                        validate_base=DEFAULT,
+                        validate_name=DEFAULT,
+                        validate_type=DEFAULT,
+                        validate_output_base=DEFAULT):
+        build.validate()
+        BuildConfig.validate_base.assert_called_with()
 
 
 def test_validate_project_config():

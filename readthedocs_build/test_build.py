@@ -1,22 +1,9 @@
 from mock import patch
 from mock import Mock
-import os
 
+from .testing.config import get_project_config
 from .build import build
 from .builder import builder_types
-from .config import BuildConfig
-from .config import ProjectConfig
-
-
-def get_project_config(build_config):
-    bcs = [
-        BuildConfig(
-            build_config,
-            source_file=str(os.path.join(os.getcwd(), 'readthedocs.yml')),
-            source_position=0)]
-    config = ProjectConfig(bcs)
-    config.validate()
-    return config
 
 
 def test_build_triggers_sphinx_builder(tmpdir):

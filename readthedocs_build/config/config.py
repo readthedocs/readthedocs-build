@@ -66,6 +66,12 @@ class BuildConfig(dict):
         """
         Validate and process config into ``config`` attribute that contains the
         ready to use build configuration.
+
+        It makes sure that:
+
+        - ``type`` is set and is a valid builder
+        - ``base`` is a valid directory and defaults to the directory of the
+          ``readthedocs.yml`` config file if not set
         """
 
         type = self.raw_config.get('type', None)

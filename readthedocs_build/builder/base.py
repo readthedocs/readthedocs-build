@@ -1,11 +1,4 @@
-import shutil
-import subprocess
-import tempfile
-
-
-def run(args):
-    popen = subprocess.Popen(args)
-    return popen.wait()
+from .virtualenv import VirtualEnv
 
 
 class BaseBuilder(object):
@@ -13,15 +6,7 @@ class BaseBuilder(object):
         self.build_config = build_config
 
     def setup(self):
-        self.setup_virtualenv()
-
-    def setup_virtualenv(self):
-        self.virtualenv_path = tempfile.mkdtemp()
-        run([
-            'virtualenv',
-            '--interpreter=/usr/bin/python2.7',
-            self.virtualenv_path,
-        ])
+        self.venv = VirtualEnv()
 
     def build(self):
         """
@@ -36,4 +21,4 @@ class BaseBuilder(object):
         pass
 
     def cleanup(self):
-        shutil.rmtree(self.virtualenv_path)
+        self.venv.cleanup()

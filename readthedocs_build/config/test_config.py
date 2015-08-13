@@ -8,6 +8,7 @@ from .config import load
 from .config import BuildConfig
 from .config import ProjectConfig
 from .config import BASE_INVALID
+from .config import BASE_NOT_A_DIR
 from .config import TYPE_INVALID
 from .config import TYPE_REQUIRED
 
@@ -109,25 +110,39 @@ def test_valid_build_config():
     assert build['type'] == 'sphinx'
 
 
-def test_build_config_base():
-    basepath = os.path.abspath(os.getcwd())
-    source_file = os.path.join(basepath, 'configs', 'readthedocs.yml')
-    build = BuildConfig({
-        'type': 'sphinx',
-        'base': '../docs'
-    }, source_file=source_file, source_position=0)
-    build.validate()
-    assert build['base'] == os.path.join(basepath, 'docs')
+def test_build_config_base(tmpdir):
+    apply_fs(tmpdir, {'configs': minimal_config, 'docs': {}})
+    with tmpdir.as_cwd():
+        source_file = str(tmpdir.join('configs', 'readthedocs.yml'))
+        build = BuildConfig({
+            'type': 'sphinx',
+            'base': '../docs'
+        }, source_file=source_file, source_position=0)
+        build.validate()
+        assert build['base'] == str(tmpdir.join('docs'))
 
 
-def test_build_config_invalid_base():
+def test_build_config_invalid_base(tmpdir):
+    apply_fs(tmpdir, minimal_config)
+    with tmpdir.as_cwd():
+        build = BuildConfig({
+            'type': 'sphinx',
+            'base': 1,
+        }, source_file=str(tmpdir.join('readthedocs.yml')), source_position=0)
+        with raises(InvalidConfig) as excinfo:
+            build.validate()
+        assert excinfo.value.code == BASE_INVALID
+
+
+def test_build_config_base_not_a_dir(tmpdir):
+    apply_fs(tmpdir, minimal_config)
     build = BuildConfig({
         'type': 'sphinx',
-        'base': 1,
-    }, source_file='readthedocs.yml', source_position=0)
+        'base': 'docs',
+    }, source_file=str(tmpdir.join('readthedocs.yml')), source_position=0)
     with raises(InvalidConfig) as excinfo:
         build.validate()
-    assert excinfo.value.code == BASE_INVALID
+    assert excinfo.value.code == BASE_NOT_A_DIR
 
 
 def test_validate_project_config():

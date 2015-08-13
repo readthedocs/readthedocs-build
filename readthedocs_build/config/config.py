@@ -11,7 +11,8 @@ __all__ = ('load', 'BuildConfig', 'InvalidConfig', 'ProjectConfig')
 CONFIG_FILENAME = 'readthedocs.yml'
 
 
-BASE_INVALID = 'type-invalid'
+BASE_INVALID = 'base-invalid'
+BASE_NOT_A_DIR = 'base-not-a-directory'
 CONFIG_SYNTAX_INVALID = 'config-syntax-invalid'
 CONFIG_REQUIRED = 'config-required'
 TYPE_REQUIRED = 'type-required'
@@ -37,6 +38,7 @@ class BuildConfig(dict):
     """
 
     BASE_INVALID_MESSAGE = 'Invalid value for base: {base}'
+    BASE_NOT_A_DIR_MESSAGE = '"base" is not a directory: {base}'
     TYPE_REQUIRED_MESSAGE = 'Missing key "type"'
     INVALID_TYPE_MESSAGE = 'Invalid type "{type}". Valid values are {valid_types}'
 
@@ -89,6 +91,11 @@ class BuildConfig(dict):
         else:
             base = os.path.dirname(self.source_file)
         base = os.path.abspath(base)
+
+        if not os.path.isdir(base):
+            self.error(
+                self.BASE_NOT_A_DIR_MESSAGE.format(base=base),
+                code=BASE_NOT_A_DIR)
 
         self['type'] = type
         self['base'] = base

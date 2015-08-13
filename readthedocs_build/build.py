@@ -7,6 +7,4 @@ def build(project_config):
         builder_class = builder_types[builder_type]
         builder = builder_class(
             build_config=build_config)
-        builder.setup()
         builder.build()
-        builder.cleanup()

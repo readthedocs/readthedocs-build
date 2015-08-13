@@ -15,6 +15,4 @@ def test_build_triggers_sphinx_builder(tmpdir):
         with patch.dict(builder_types, {'sphinx': sphinx_mock}):
             build(config)
             sphinx_mock.assert_called_with(build_config=build_config)
-            sphinx_mock.setup.assert_called_with()
             sphinx_mock.build.assert_called_with()
-            sphinx_mock.cleanup.assert_called_with()

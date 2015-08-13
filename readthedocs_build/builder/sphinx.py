@@ -1,12 +1,16 @@
-class SphinxBuilder(object):
-    def __init__(self, build_config):
-        self.build_config = build_config
+from .base import BaseBuilder
 
-    def setup(self):
-        pass
 
-    def build(self):
-        pass
+class SphinxBuilder(BaseBuilder):
+    """
+    TODO:
 
-    def cleanup(self):
-        pass
+    - Build HTML
+    - Build HTML in htmldir format
+    - Build HTML in singlefile format
+    - Build PDF
+    - Build ePUB
+    """
+
+    def build_html(self):
+        raise NotImplementedError('TODO')

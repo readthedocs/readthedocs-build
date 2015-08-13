@@ -23,6 +23,7 @@ setup(
         "readthedocs-sphinx-ext",
         "recommonmark",
         "click>=4.0",
+        "virtualenv",
     ],
     entry_points={
         'console_scripts': [

@@ -4,7 +4,7 @@ from .base import BaseBuilder
 
 
 def test_build_calls_setup():
-    build_config = {'type': 'sphinx'}
+    build_config = {'name': 'docs', 'type': 'sphinx'}
     with patch.object(BaseBuilder, 'setup') as setup:
          with patch.object(BaseBuilder, 'cleanup'):
             builder = BaseBuilder(build_config=build_config)
@@ -13,7 +13,7 @@ def test_build_calls_setup():
 
 
 def test_build_calls_cleanup():
-    build_config = {'type': 'sphinx'}
+    build_config = {'name': 'docs', 'type': 'sphinx'}
     with patch('readthedocs_build.builder.base.VirtualEnv'):
         with patch.object(BaseBuilder, 'cleanup') as cleanup:
             builder = BaseBuilder(build_config=build_config)
@@ -24,7 +24,7 @@ def test_build_calls_cleanup():
 
 
 def test_build_calls_build_html():
-    build_config = {'type': 'sphinx'}
+    build_config = {'name': 'docs', 'type': 'sphinx'}
     with patch('readthedocs_build.builder.base.VirtualEnv'):
         with patch.object(BaseBuilder, 'build_html') as build_html:
             builder = BaseBuilder(build_config=build_config)
@@ -33,7 +33,7 @@ def test_build_calls_build_html():
 
 
 def test_setup_creates_virtualenv():
-    build_config = {'type': 'sphinx'}
+    build_config = {'name': 'docs', 'type': 'sphinx'}
     builder = BaseBuilder(build_config=build_config)
     with patch('readthedocs_build.builder.base.VirtualEnv') as VirtualEnv:
         builder.setup()
@@ -41,7 +41,7 @@ def test_setup_creates_virtualenv():
 
 
 def test_cleanup_removes_virtualenv(tmpdir):
-    build_config = {'type': 'sphinx'}
+    build_config = {'name': 'docs', 'type': 'sphinx'}
     builder = BaseBuilder(build_config=build_config)
     with patch('readthedocs_build.builder.base.VirtualEnv'):
         builder.setup()

@@ -8,7 +8,10 @@ from .testing.utils import apply_fs
 
 
 minimal_config = {
-    'readthedocs.yml': '''type: sphinx''',
+    'readthedocs.yml': '''
+name: docs
+type: sphinx
+''',
 }
 
 
@@ -44,11 +47,7 @@ def test_main_resets_cwd(tmpdir):
 def test_main_takes_path_argument(tmpdir):
     tmpdir = apply_fs(tmpdir, {
         'badpath': {},
-        'goodpath': {
-            'readthedocs.yml': '''
-type: sphinx
-            '''
-        }
+        'goodpath': minimal_config,
     })
 
     with tmpdir.as_cwd():

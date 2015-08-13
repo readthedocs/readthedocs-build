@@ -1,3 +1,4 @@
+import re
 import os
 
 from .find import find_all
@@ -15,6 +16,8 @@ BASE_INVALID = 'base-invalid'
 BASE_NOT_A_DIR = 'base-not-a-directory'
 CONFIG_SYNTAX_INVALID = 'config-syntax-invalid'
 CONFIG_REQUIRED = 'config-required'
+NAME_REQUIRED = 'name-required'
+NAME_INVALID = 'name-invalid'
 TYPE_REQUIRED = 'type-required'
 TYPE_INVALID = 'type-invalid'
 
@@ -41,6 +44,9 @@ class BuildConfig(dict):
 
     BASE_INVALID_MESSAGE = 'Invalid value for base: {base}'
     BASE_NOT_A_DIR_MESSAGE = '"base" is not a directory: {base}'
+    NAME_REQUIRED_MESSAGE = 'Missing key "name"'
+    NAME_INVALID_MESSAGE = (
+        'Invalid name "{name}". Valid values must match {name_re}')
     TYPE_REQUIRED_MESSAGE = 'Missing key "type"'
     INVALID_TYPE_MESSAGE = 'Invalid type "{type}". Valid values are {valid_types}'
 
@@ -81,6 +87,17 @@ class BuildConfig(dict):
             '"output_base" required in "env_config"')
         self['output_base'] = os.path.abspath(self.env_config['output_base'])
 
+        name = self.raw_config.get('name', None)
+        if not name:
+            self.error(self.NAME_REQUIRED_MESSAGE, code=NAME_REQUIRED)
+        name_re = r'^[-_.0-9a-zA-Z]+$'
+        if not re.match(name_re, name):
+            self.error(
+                self.NAME_INVALID_MESSAGE.format(
+                    name=name,
+                    name_re=name_re),
+                code=NAME_INVALID)
+
         type = self.raw_config.get('type', None)
         if not type:
             self.error(self.TYPE_REQUIRED_MESSAGE, code=TYPE_REQUIRED)
@@ -110,6 +127,7 @@ class BuildConfig(dict):
                 self.BASE_NOT_A_DIR_MESSAGE.format(base=base),
                 code=BASE_NOT_A_DIR)
 
+        self['name'] = name
         self['type'] = type
         self['base'] = base
 

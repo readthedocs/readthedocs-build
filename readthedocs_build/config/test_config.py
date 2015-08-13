@@ -11,6 +11,8 @@ from .config import BASE_INVALID
 from .config import BASE_NOT_A_DIR
 from .config import TYPE_INVALID
 from .config import TYPE_REQUIRED
+from .config import NAME_REQUIRED
+from .config import NAME_INVALID
 
 
 env_config = {
@@ -19,12 +21,14 @@ env_config = {
 
 
 minimal_config = {
+    'name': 'docs',
     'type': 'sphinx',
 }
 
 
 minimal_config_dir = {
     'readthedocs.yml': '''\
+name: docs
 type: sphinx
 '''
 }
@@ -89,9 +93,29 @@ def test_build_config_has_source_position(tmpdir):
     assert third.source_position == 0
 
 
-def test_build_requires_type():
+def test_config_requires_name():
     build = BuildConfig(env_config,
-                        {},
+                        {'type': 'sphinx'},
+                        source_file=None,
+                        source_position=None)
+    with raises(InvalidConfig) as excinfo:
+        build.validate()
+    assert excinfo.value.code == NAME_REQUIRED
+
+
+def test_build_requires_valid_name():
+    build = BuildConfig(env_config,
+                        {'name': 'with/slashes', 'type': 'sphinx'},
+                        source_file=None,
+                        source_position=None)
+    with raises(InvalidConfig) as excinfo:
+        build.validate()
+    assert excinfo.value.code == NAME_INVALID
+
+
+def test_config_requires_type():
+    build = BuildConfig(env_config,
+                        {'name': 'docs'},
                         source_file=None,
                         source_position=None)
     with raises(InvalidConfig) as excinfo:
@@ -101,7 +125,7 @@ def test_build_requires_type():
 
 def test_build_requires_valid_type():
     build = BuildConfig(env_config,
-                        {'type': 'unknown'},
+                        {'name': 'docs', 'type': 'unknown'},
                         source_file=None,
                         source_position=None)
     with raises(InvalidConfig) as excinfo:
@@ -125,6 +149,7 @@ def test_build_config_base(tmpdir):
         build = BuildConfig(
             env_config,
             {
+                'name': 'docs',
                 'type': 'sphinx',
                 'base': '../docs'
             },
@@ -140,6 +165,7 @@ def test_build_config_invalid_base(tmpdir):
         build = BuildConfig(
             env_config,
             {
+                'name': 'docs',
                 'type': 'sphinx',
                 'base': 1,
             },
@@ -155,6 +181,7 @@ def test_build_config_base_not_a_dir(tmpdir):
     build = BuildConfig(
         env_config,
         {
+            'name': 'docs',
             'type': 'sphinx',
             'base': 'docs',
         },

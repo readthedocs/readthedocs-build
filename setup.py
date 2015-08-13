@@ -1,31 +1,8 @@
+# -*- coding: utf-8 -*-
 import codecs
-try:
-    from setuptools import setup, find_packages
-    extra_setup = dict(
-        zip_safe=True,
-        install_requires=[
-            "PyYAML>=3.0",
-            "Sphinx>=1.3",
-            "Docutils",
-            "sphinx-autobuild",
-            "readthedocs-sphinx-ext",
-            "recommonmark",
-            "click>=4.0",
-        ],
-    )
-except ImportError:
-    from distutils.core import setup
-    extra_setup = dict(
-        requires=[
-            "PyYAML (>=3.0)",
-            "Sphinx (>=1.3)",
-            "Docutils",
-            "sphinx-autobuild",
-            "readthedocs-sphinx-ext",
-            "recommonmark",
-            "click (>=4.0)",
-        ]
-    )
+from setuptools import find_packages
+from setuptools import setup
+
 
 setup(
     name='readthedocs-build',
@@ -38,10 +15,19 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     long_description=codecs.open("README.rst", "r", "utf-8").read(),
+    install_requires=[
+        "PyYAML>=3.0",
+        "Sphinx>=1.3",
+        "Docutils",
+        "sphinx-autobuild",
+        "readthedocs-sphinx-ext",
+        "recommonmark",
+        "click>=4.0",
+    ],
     entry_points={
         'console_scripts': [
             'rtd-build=readthedocs_build.cli:main',
         ]
     },
-    **extra_setup
+    zip_safe=True,
 )

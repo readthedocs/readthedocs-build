@@ -11,12 +11,12 @@ from .config import BuildConfig
 from .config import ProjectConfig
 from .config import BASE_INVALID
 from .config import BASE_NOT_A_DIR
-from .config import TYPE_INVALID
 from .config import TYPE_REQUIRED
 from .config import NAME_REQUIRED
 from .config import NAME_INVALID
 from .config import PYTHON_INVALID
 from .validation import INVALID_BOOL
+from .validation import INVALID_CHOICE
 
 
 env_config = {
@@ -147,7 +147,7 @@ def test_build_requires_valid_type():
     with raises(InvalidConfig) as excinfo:
         build.validate_type()
     assert excinfo.value.key == 'type'
-    assert excinfo.value.code == TYPE_INVALID
+    assert excinfo.value.code == INVALID_CHOICE
 
 
 def test_empty_python_section_is_valid():

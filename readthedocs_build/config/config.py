@@ -6,6 +6,7 @@ from .find import find_all
 from .parser import ParseError
 from .parser import parse
 from .validation import validate_bool
+from .validation import validate_choice
 from .validation import ValidationError
 
 
@@ -23,7 +24,6 @@ CONFIG_REQUIRED = 'config-required'
 NAME_REQUIRED = 'name-required'
 NAME_INVALID = 'name-invalid'
 TYPE_REQUIRED = 'type-required'
-TYPE_INVALID = 'type-invalid'
 PYTHON_INVALID = 'python-invalid'
 
 
@@ -67,7 +67,6 @@ class BuildConfig(dict):
     NAME_INVALID_MESSAGE = (
         'Invalid name "{name}". Valid values must match {name_re}')
     TYPE_REQUIRED_MESSAGE = 'Missing key "type"'
-    INVALID_TYPE_MESSAGE = 'Invalid type "{type}". Valid values are {valid_types}'
     PYTHON_INVALID_MESSAGE = '"python" section must be a mapping.'
 
     def __init__(self, env_config, raw_config, source_file, source_position):
@@ -145,18 +144,12 @@ class BuildConfig(dict):
         self['name'] = name
 
     def validate_type(self):
-        type = self.raw_config.get('type', None)
-        if not type:
+        if 'type' not in self.raw_config:
             self.error('type', self.TYPE_REQUIRED_MESSAGE, code=TYPE_REQUIRED)
-        if type != 'sphinx':
-            self.error(
-                'type',
-                self.INVALID_TYPE_MESSAGE.format(
-                    type=type,
-                    valid_types=' '.join(
-                        '"{}"'.format(valid)
-                        for valid in self.get_valid_types())),
-                code=TYPE_INVALID)
+
+        type = self.raw_config['type']
+        with self.catch_validation_error('type'):
+            validate_choice(type, self.get_valid_types())
 
         self['type'] = type
 

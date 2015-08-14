@@ -7,6 +7,7 @@ from .parser import ParseError
 from .parser import parse
 from .validation import validate_bool
 from .validation import validate_choice
+from .validation import validate_directory
 from .validation import ValidationError
 
 
@@ -157,24 +158,11 @@ class BuildConfig(dict):
     def validate_base(self):
         if 'base' in self.raw_config:
             base = self.raw_config['base']
-            if not isinstance(base, basestring):
-                self.error(
-                    'base',
-                    self.BASE_INVALID_MESSAGE.format(base=repr(base)),
-                    code=BASE_INVALID)
-            base = os.path.join(
-                os.path.dirname(self.source_file),
-                self.raw_config['base'])
         else:
             base = os.path.dirname(self.source_file)
-        base = os.path.abspath(base)
-
-        if not os.path.isdir(base):
-            self.error(
-                'base',
-                self.BASE_NOT_A_DIR_MESSAGE.format(base=base),
-                code=BASE_NOT_A_DIR)
-
+        with self.catch_validation_error('base'):
+            base_path = os.path.dirname(self.source_file)
+            base = validate_directory(base, base_path)
         self['base'] = base
 
     def validate_python(self):

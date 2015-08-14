@@ -9,14 +9,14 @@ from .config import InvalidConfig
 from .config import load
 from .config import BuildConfig
 from .config import ProjectConfig
-from .config import BASE_INVALID
-from .config import BASE_NOT_A_DIR
 from .config import TYPE_REQUIRED
 from .config import NAME_REQUIRED
 from .config import NAME_INVALID
 from .config import PYTHON_INVALID
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
+from .validation import INVALID_DIRECTORY
+from .validation import INVALID_STRING
 
 
 env_config = {
@@ -232,44 +232,53 @@ def test_valid_build_config():
     assert build['output_base']
 
 
-def test_build_config_base(tmpdir):
-    apply_fs(tmpdir, {'configs': minimal_config, 'docs': {}})
-    with tmpdir.as_cwd():
-        source_file = str(tmpdir.join('configs', 'readthedocs.yml'))
-        build = BuildConfig(
-            {},
-            {'base': '../docs'},
-            source_file=source_file,
-            source_position=0)
+def describe_validate_base():
+
+    def it_validates_to_abspath(tmpdir):
+        apply_fs(tmpdir, {'configs': minimal_config, 'docs': {}})
+        with tmpdir.as_cwd():
+            source_file = str(tmpdir.join('configs', 'readthedocs.yml'))
+            build = BuildConfig(
+                {},
+                {'base': '../docs'},
+                source_file=source_file,
+                source_position=0)
+            build.validate_base()
+            assert build['base'] == str(tmpdir.join('docs'))
+
+    @patch('readthedocs_build.config.config.validate_directory')
+    def it_uses_validate_directory(validate_directory):
+        validate_directory.return_value = 'path'
+        build = get_build_config({'base': '../my-path'})
         build.validate_base()
-        assert build['base'] == str(tmpdir.join('docs'))
+        # Test for first argument to validate_directory
+        args, kwargs = validate_directory.call_args
+        assert args[0] == '../my-path'
 
+    def it_fails_if_base_is_not_a_string(tmpdir):
+        apply_fs(tmpdir, minimal_config)
+        with tmpdir.as_cwd():
+            build = BuildConfig(
+                {},
+                {'base': 1},
+                source_file=str(tmpdir.join('readthedocs.yml')),
+                source_position=0)
+            with raises(InvalidConfig) as excinfo:
+                build.validate_base()
+            assert excinfo.value.key == 'base'
+            assert excinfo.value.code == INVALID_STRING
 
-def test_build_config_invalid_base(tmpdir):
-    apply_fs(tmpdir, minimal_config)
-    with tmpdir.as_cwd():
+    def it_fails_if_base_is_not_a_directory(tmpdir):
+        apply_fs(tmpdir, minimal_config)
         build = BuildConfig(
             {},
-            {'base': 1},
+            {'base': 'docs'},
             source_file=str(tmpdir.join('readthedocs.yml')),
             source_position=0)
         with raises(InvalidConfig) as excinfo:
             build.validate_base()
         assert excinfo.value.key == 'base'
-        assert excinfo.value.code == BASE_INVALID
-
-
-def test_build_config_base_not_a_dir(tmpdir):
-    apply_fs(tmpdir, minimal_config)
-    build = BuildConfig(
-        {},
-        {'base': 'docs'},
-        source_file=str(tmpdir.join('readthedocs.yml')),
-        source_position=0)
-    with raises(InvalidConfig) as excinfo:
-        build.validate_base()
-    assert excinfo.value.key == 'base'
-    assert excinfo.value.code == BASE_NOT_A_DIR
+        assert excinfo.value.code == INVALID_DIRECTORY
 
 
 def test_build_validate_calls_all_subvalidators(tmpdir):

@@ -37,7 +37,7 @@ def test_find_nested(tmpdir):
 
     base = str(tmpdir)
     paths = list(find_all(base, 'readthedocs.yml'))
-    assert paths == [
+    assert set(paths) == set([
         str(tmpdir.join('first', 'readthedocs.yml')),
         str(tmpdir.join('third', 'readthedocs.yml')),
-    ]
+    ])

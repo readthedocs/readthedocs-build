@@ -14,6 +14,8 @@ from .config import TYPE_INVALID
 from .config import TYPE_REQUIRED
 from .config import NAME_REQUIRED
 from .config import NAME_INVALID
+from .config import PYTHON_INVALID
+from .config import USE_SYSTEM_SITE_PACKAGES_INVALID
 
 
 env_config = {
@@ -45,6 +47,15 @@ type: sphinx
     ''',
     'nested': minimal_config_dir,
 }
+
+
+def get_build_config(config, env_config=None, source_file='readthedocs.yml',
+                     source_position=0):
+    return BuildConfig(
+        env_config or {},
+        config,
+        source_file=source_file,
+        source_position=source_position)
 
 
 def test_load_no_config_file(tmpdir):
@@ -132,6 +143,45 @@ def test_build_requires_valid_type():
     with raises(InvalidConfig) as excinfo:
         build.validate_type()
     assert excinfo.value.code == TYPE_INVALID
+
+
+def test_empty_python_section_is_valid():
+    build = get_build_config({'python': {}})
+    build.validate_python()
+    assert 'python' in build
+
+
+def test_python_section_must_be_dict():
+    build = get_build_config({'python': 123})
+    with raises(InvalidConfig) as excinfo:
+        build.validate_python()
+    assert excinfo.value.code == PYTHON_INVALID
+
+
+def test_use_system_site_packages_defaults_to_false():
+    build = get_build_config({'python': {}})
+    build.validate_python()
+    # Default is False.
+    assert not build['python']['use_system_site_packages']
+
+
+def test_use_system_site_packages_must_be_boolean_or_int():
+    build = get_build_config({'python': {'use_system_site_packages': True}})
+    build.validate_python()
+    assert build['python']['use_system_site_packages']
+
+    build = get_build_config({'python': {'use_system_site_packages': 1}})
+    build.validate_python()
+    assert build['python']['use_system_site_packages'] is True
+
+    build = get_build_config({'python': {'use_system_site_packages': 0}})
+    build.validate_python()
+    assert build['python']['use_system_site_packages'] is False
+
+    build = get_build_config({'python': {'use_system_site_packages': 'this-is-string'}})
+    with raises(InvalidConfig) as excinfo:
+        build.validate_python()
+    assert excinfo.value.code == USE_SYSTEM_SITE_PACKAGES_INVALID
 
 
 def test_valid_build_config():

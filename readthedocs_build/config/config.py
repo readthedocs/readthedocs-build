@@ -20,6 +20,8 @@ NAME_REQUIRED = 'name-required'
 NAME_INVALID = 'name-invalid'
 TYPE_REQUIRED = 'type-required'
 TYPE_INVALID = 'type-invalid'
+PYTHON_INVALID = 'python-invalid'
+USE_SYSTEM_SITE_PACKAGES_INVALID = 'use-system-site-packages-invalid'
 
 
 class InvalidConfig(Exception):
@@ -49,6 +51,10 @@ class BuildConfig(dict):
         'Invalid name "{name}". Valid values must match {name_re}')
     TYPE_REQUIRED_MESSAGE = 'Missing key "type"'
     INVALID_TYPE_MESSAGE = 'Invalid type "{type}". Valid values are {valid_types}'
+    USE_SYSTEM_SITE_PACKAGES_INVALID_MESSAGE = (
+        'Invalid value for "use_system_site_packages". '
+        'It must be "true" or "false"')
+    PYTHON_INVALID_MESSAGE = '"python" section must be a mapping.'
 
     def __init__(self, env_config, raw_config, source_file, source_position):
         self.env_config = env_config
@@ -144,6 +150,24 @@ class BuildConfig(dict):
                 code=BASE_NOT_A_DIR)
 
         self['base'] = base
+
+    def validate_python(self):
+        python = {}
+        if 'python' in self.raw_config:
+            raw_python = self.raw_config['python']
+            if not isinstance(raw_python, dict):
+                self.error(
+                    self.PYTHON_INVALID_MESSAGE,
+                    code=PYTHON_INVALID)
+            use_system_site_packages = raw_python.get(
+                'use_system_site_packages', False)
+            if use_system_site_packages not in (True, False, 0, 1):
+                self.error(
+                    self.USE_SYSTEM_SITE_PACKAGES_INVALID_MESSAGE,
+                    code=USE_SYSTEM_SITE_PACKAGES_INVALID)
+            python['use_system_site_packages'] = bool(use_system_site_packages)
+
+        self['python'] = python
 
 
 class ProjectConfig(list):

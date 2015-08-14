@@ -16,7 +16,9 @@ class BaseBuilder(object):
         self.setup_virtualenv()
 
     def setup_virtualenv(self):
-        self.venv = VirtualEnv()
+        python_config = self.build_config['python']
+        use_system_site_packages = python_config['use_system_site_packages']
+        self.venv = VirtualEnv(system_site_packages=use_system_site_packages)
         for package in self.python_dependencies:
             self.venv.install(package)
 

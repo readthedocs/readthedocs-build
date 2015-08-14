@@ -2,10 +2,11 @@ from mock import patch
 import os
 
 from .sphinx import SphinxBuilder
+from .test_base import get_config
 
 
 def test_setup_installs_sphinx():
-    build_config = {}
+    build_config = get_config()
     builder = SphinxBuilder(build_config=build_config)
     with patch('readthedocs_build.builder.base.VirtualEnv'):
         builder.setup()
@@ -15,11 +16,11 @@ def test_setup_installs_sphinx():
 
 
 def test_build_html_calls_sphinx_build(tmpdir):
-    build_config = {
+    build_config = get_config({
         'name': 'docs',
         'base': str(tmpdir),
         'output_base': str(tmpdir.join('out')),
-    }
+    })
     builder = SphinxBuilder(build_config=build_config)
     with patch('readthedocs_build.builder.base.VirtualEnv'):
         builder.build()
@@ -35,11 +36,11 @@ def test_build_html_calls_sphinx_build(tmpdir):
 
 
 def test_build_creates_search_data(tmpdir):
-    build_config = {
+    build_config = get_config({
         'name': 'docs',
         'base': str(tmpdir),
         'output_base': str(tmpdir.join('out')),
-    }
+    })
     builder = SphinxBuilder(build_config=build_config)
     with patch('readthedocs_build.builder.base.VirtualEnv'):
         builder.build()

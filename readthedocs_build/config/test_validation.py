@@ -3,10 +3,12 @@ from pytest import raises
 
 from .validation import validate_bool
 from .validation import validate_choice
+from .validation import validate_directory
 from .validation import validate_string
 from .validation import ValidationError
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
+from .validation import INVALID_DIRECTORY
 from .validation import INVALID_STRING
 
 
@@ -42,6 +44,33 @@ def describe_validate_choice():
         with raises(ValidationError) as excinfo:
             validate_choice('not-a-choice', ('choice', 'another_choice'))
         assert excinfo.value.code == INVALID_CHOICE
+
+
+def describe_validate_directory():
+
+    def it_accepts_relative_path(tmpdir):
+        tmpdir.mkdir('a directory')
+        validate_directory('a directory', str(tmpdir))
+
+    def it_accepts_absolute_path(tmpdir):
+        path = str(tmpdir.mkdir('a directory'))
+        validate_directory(path, 'does not matter')
+
+    def it_only_accepts_strings():
+        with raises(ValidationError) as excinfo:
+            validate_directory(None, '')
+        assert excinfo.value.code == INVALID_STRING
+
+    def it_rejects_non_existent_path(tmpdir):
+        with raises(ValidationError) as excinfo:
+            validate_directory('does not exist', str(tmpdir))
+        assert excinfo.value.code == INVALID_DIRECTORY
+
+    def it_rejects_files(tmpdir):
+        tmpdir.join('file').write('content')
+        with raises(ValidationError) as excinfo:
+            validate_directory('file', str(tmpdir))
+        assert excinfo.value.code == INVALID_DIRECTORY
 
 
 def describe_validate_string():

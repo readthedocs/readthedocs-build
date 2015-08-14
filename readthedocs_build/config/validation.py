@@ -1,5 +1,9 @@
+import os
+
+
 INVALID_BOOL = 'invalid-bool'
 INVALID_CHOICE = 'invalid-choice'
+INVALID_DIRECTORY = 'invalid-directory'
 INVALID_STRING = 'invalid-string'
 
 
@@ -7,6 +11,7 @@ class ValidationError(Exception):
     messages = {
         INVALID_BOOL: 'expected one of (0, 1, true, false), got {value}',
         INVALID_CHOICE: 'expected one of ({choices}), got {value}',
+        INVALID_DIRECTORY: 'directory {value} does not exist',
         INVALID_STRING: 'expected string',
     }
 
@@ -34,6 +39,15 @@ def validate_bool(value):
     if value not in (0, 1, False, True):
         raise ValidationError(value, INVALID_BOOL)
     return bool(value)
+
+
+def validate_directory(value, base_path):
+    value = validate_string(value)
+    value = os.path.join(base_path, value)
+    value = os.path.abspath(value)
+    if not os.path.isdir(value):
+        raise ValidationError(value, INVALID_DIRECTORY)
+    return value
 
 
 def validate_string(value):

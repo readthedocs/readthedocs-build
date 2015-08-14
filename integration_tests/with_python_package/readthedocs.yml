@@ -1,0 +1,7 @@
+base: docs
+name: docs
+type: sphinx
+python:
+    use_system_site_packages: true
+    setup_py_install: true
+    setup_py_path: ./setup.py

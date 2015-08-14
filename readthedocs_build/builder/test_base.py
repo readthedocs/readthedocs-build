@@ -9,6 +9,8 @@ def get_config(extra=None):
         'type': 'sphinx',
         'python': {
             'use_system_site_packages': False,
+            'setup_py_install': False,
+            'setup_py_path': '',
         },
         'output_base': '/tmp',
     }
@@ -66,26 +68,40 @@ def test_setup_creates_virtualenv():
         assert VirtualEnv.call_count == 1
 
 
-def test_setup_virtualenv_respects_use_system_site_packages_config():
-    build_config = get_config({
-        'python': {
+def describe_setup_virtualenv():
+    def it_respects_use_system_site_packages_config():
+        build_config = get_config()
+        build_config['python'].update({
             'use_system_site_packages': False
-        }
-    })
-    with patch('readthedocs_build.builder.base.VirtualEnv') as VirtualEnv:
-        builder = BaseBuilder(build_config=build_config)
-        builder.setup_virtualenv()
-        VirtualEnv.assert_called_with(system_site_packages=False)
+        })
+        with patch('readthedocs_build.builder.base.VirtualEnv') as VirtualEnv:
+            builder = BaseBuilder(build_config=build_config)
+            builder.setup_virtualenv()
+            VirtualEnv.assert_called_with(system_site_packages=False)
 
-    build_config = get_config({
-        'python': {
+        build_config = get_config()
+        build_config['python'].update({
             'use_system_site_packages': True
-        }
-    })
-    with patch('readthedocs_build.builder.base.VirtualEnv') as VirtualEnv:
-        builder = BaseBuilder(build_config=build_config)
-        builder.setup_virtualenv()
-        VirtualEnv.assert_called_with(system_site_packages=True)
+        })
+        with patch('readthedocs_build.builder.base.VirtualEnv') as VirtualEnv:
+            builder = BaseBuilder(build_config=build_config)
+            builder.setup_virtualenv()
+            VirtualEnv.assert_called_with(system_site_packages=True)
+
+    def it_executes_setup_py_install(tmpdir):
+        setup_py = str(tmpdir.join('setup.py'))
+        build_config = get_config()
+        build_config['python'].update({
+            'setup_py_install': True,
+            'setup_py_path': setup_py,
+        })
+        with patch('readthedocs_build.builder.base.VirtualEnv') as VirtualEnv:
+            VirtualEnv.return_value = VirtualEnv
+            builder = BaseBuilder(build_config=build_config)
+            builder.setup_virtualenv()
+            VirtualEnv.python_run.assert_called_with(
+                setup_py,
+                ['install'])
 
 
 def test_cleanup_removes_virtualenv(tmpdir):

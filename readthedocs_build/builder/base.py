@@ -21,6 +21,9 @@ class BaseBuilder(object):
         self.venv = VirtualEnv(system_site_packages=use_system_site_packages)
         for package in self.python_dependencies:
             self.venv.install(package)
+        if python_config['setup_py_install']:
+            setup_py_path = python_config['setup_py_path']
+            self.venv.python_run(setup_py_path, ['install'])
 
     def get_output_directory(self, format):
         out_dir = os.path.join(

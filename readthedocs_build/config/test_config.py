@@ -226,6 +226,9 @@ def test_valid_build_config():
     assert build['name'] == 'docs'
     assert build['type'] == 'sphinx'
     assert build['base']
+    assert build['python']
+    assert 'setup_install' in build['python']
+    assert 'use_system_site_packages' in build['python']
     assert build['output_base']
 
 

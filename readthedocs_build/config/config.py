@@ -178,7 +178,11 @@ class BuildConfig(dict):
         self['base'] = base
 
     def validate_python(self):
-        python = {}
+        python = {
+            'use_system_site_packages': False,
+            'setup_install': False,
+        }
+
         if 'python' in self.raw_config:
             raw_python = self.raw_config['python']
             if not isinstance(raw_python, dict):
@@ -188,17 +192,17 @@ class BuildConfig(dict):
                     code=PYTHON_INVALID)
 
             # Validate use_system_site_packages.
-            use_system_site_packages = raw_python.get(
-                'use_system_site_packages', False)
-            with self.catch_validation_error(
-                    'python.use_system_site_packages'):
-                python['use_system_site_packages'] = validate_bool(
-                    use_system_site_packages)
+            if 'use_system_site_packages' in raw_python:
+                with self.catch_validation_error(
+                        'python.use_system_site_packages'):
+                    python['use_system_site_packages'] = validate_bool(
+                        raw_python['use_system_site_packages'])
 
             # Validate setup_install.
-            setup_install = raw_python.get('setup_install', False)
-            with self.catch_validation_error('python.setup_install'):
-                python['setup_install'] = validate_bool(setup_install)
+            if 'setup_install' in raw_python:
+                with self.catch_validation_error('python.setup_install'):
+                    python['setup_install'] = validate_bool(
+                        raw_python['setup_install'])
 
         self['python'] = python
 

@@ -4,6 +4,7 @@ import os
 INVALID_BOOL = 'invalid-bool'
 INVALID_CHOICE = 'invalid-choice'
 INVALID_DIRECTORY = 'invalid-directory'
+INVALID_FILE = 'invalid-file'
 INVALID_PATH = 'invalid-path'
 INVALID_STRING = 'invalid-string'
 
@@ -13,6 +14,7 @@ class ValidationError(Exception):
         INVALID_BOOL: 'expected one of (0, 1, true, false), got {value}',
         INVALID_CHOICE: 'expected one of ({choices}), got {value}',
         INVALID_DIRECTORY: '{value} is not a directory',
+        INVALID_FILE: '{value} is not a file',
         INVALID_PATH: 'path {value} does not exist',
         INVALID_STRING: 'expected string',
     }
@@ -47,6 +49,13 @@ def validate_directory(value, base_path):
     path = validate_path(value, base_path)
     if not os.path.isdir(path):
         raise ValidationError(value, INVALID_DIRECTORY)
+    return path
+
+
+def validate_file(value, base_path):
+    path = validate_path(value, base_path)
+    if not os.path.isfile(path):
+        raise ValidationError(value, INVALID_FILE)
     return path
 
 

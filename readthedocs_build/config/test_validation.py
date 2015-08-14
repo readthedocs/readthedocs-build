@@ -6,12 +6,14 @@ import os
 from .validation import validate_bool
 from .validation import validate_choice
 from .validation import validate_directory
+from .validation import validate_file
 from .validation import validate_path
 from .validation import validate_string
 from .validation import ValidationError
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
 from .validation import INVALID_DIRECTORY
+from .validation import INVALID_FILE
 from .validation import INVALID_PATH
 from .validation import INVALID_STRING
 
@@ -65,6 +67,25 @@ def describe_validate_directory():
         with raises(ValidationError) as excinfo:
             validate_directory('file', str(tmpdir))
         assert excinfo.value.code == INVALID_DIRECTORY
+
+
+def describe_validate_file():
+
+    def it_uses_validate_path(tmpdir):
+        patcher = patch('readthedocs_build.config.validation.validate_path')
+        with patcher as validate_path:
+            path = tmpdir.join('a file')
+            path.write('content')
+            path = str(path)
+            validate_path.return_value = path
+            validate_file(path, str(tmpdir))
+            validate_path.assert_called_with(path, str(tmpdir))
+
+    def it_rejects_directories(tmpdir):
+        tmpdir.mkdir('directory')
+        with raises(ValidationError) as excinfo:
+            validate_file('directory', str(tmpdir))
+        assert excinfo.value.code == INVALID_FILE
 
 
 def describe_validate_path():

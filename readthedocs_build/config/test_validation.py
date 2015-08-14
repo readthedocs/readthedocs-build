@@ -1,10 +1,13 @@
+# -*- coding: utf-8 -*-
 from pytest import raises
 
 from .validation import validate_bool
 from .validation import validate_choice
+from .validation import validate_string
 from .validation import ValidationError
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
+from .validation import INVALID_STRING
 
 
 def describe_validate_bool():
@@ -39,3 +42,24 @@ def describe_validate_choice():
         with raises(ValidationError) as excinfo:
             validate_choice('not-a-choice', ('choice', 'another_choice'))
         assert excinfo.value.code == INVALID_CHOICE
+
+
+def describe_validate_string():
+
+    def it_accepts_unicode():
+        result = validate_string(u'Unicöde')
+        assert isinstance(result, unicode)
+
+    def it_accepts_nonunicode():
+        result = validate_string('Unicode')
+        assert isinstance(result, unicode)
+
+    def it_rejects_float():
+        with raises(ValidationError) as excinfo:
+            validate_string(123.456)
+        assert excinfo.value.code == INVALID_STRING
+
+    def it_rejects_none():
+        with raises(ValidationError) as excinfo:
+            validate_string(None)
+        assert excinfo.value.code == INVALID_STRING

@@ -1,11 +1,13 @@
 INVALID_BOOL = 'invalid-bool'
 INVALID_CHOICE = 'invalid-choice'
+INVALID_STRING = 'invalid-string'
 
 
 class ValidationError(Exception):
     messages = {
         INVALID_BOOL: 'expected one of (0, 1, true, false), got {value}',
         INVALID_CHOICE: 'expected one of ({choices}), got {value}',
+        INVALID_STRING: 'expected string',
     }
 
     def __init__(self, value, code, format_kwargs=None):
@@ -32,3 +34,9 @@ def validate_bool(value):
     if value not in (0, 1, False, True):
         raise ValidationError(value, INVALID_BOOL)
     return bool(value)
+
+
+def validate_string(value):
+    if not isinstance(value, basestring):
+        raise ValidationError(value, INVALID_STRING)
+    return unicode(value)

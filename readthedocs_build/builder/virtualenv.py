@@ -10,8 +10,9 @@ class VirtualEnv(object):
     Light abstraction of a virtualenv.
     """
 
-    def __init__(self):
+    def __init__(self, system_site_packages=False):
         self.base_path = tempfile.mkdtemp()
+        self.system_site_packages = system_site_packages
         self.setup()
 
     def python_run(self, command_bin, args):
@@ -28,11 +29,15 @@ class VirtualEnv(object):
         ] + list(args))
 
     def setup(self):
-        exit_code = run([
+        params = [
             'virtualenv',
-            '--python=/usr/bin/python2.7',
             self.base_path,
-        ])
+            '--python=/usr/bin/python2.7',
+        ]
+        if self.system_site_packages:
+            params.append('--system-site-packages')
+
+        exit_code = run(params)
         assert exit_code == 0, 'virtualenv setup failed'
 
     def cleanup(self):

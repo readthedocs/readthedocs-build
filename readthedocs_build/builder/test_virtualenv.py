@@ -4,15 +4,30 @@ import os
 from .virtualenv import VirtualEnv
 
 
-def test_creates_virtualenv():
+def test_creates_default_virtualenv():
     with patch('readthedocs_build.builder.virtualenv.run') as run:
         run.return_value = 0
 
         venv = VirtualEnv()
+        assert not venv.system_site_packages
         run.assert_called_with([
             'virtualenv',
-            '--python=/usr/bin/python2.7',
             venv.base_path,
+            '--python=/usr/bin/python2.7',
+        ])
+
+
+def test_it_respects_system_site_packages_flag():
+    with patch('readthedocs_build.builder.virtualenv.run') as run:
+        run.return_value = 0
+
+        venv = VirtualEnv(system_site_packages=True)
+        assert venv.system_site_packages
+        run.assert_called_with([
+            'virtualenv',
+            venv.base_path,
+            '--python=/usr/bin/python2.7',
+            '--system-site-packages',
         ])
 
 

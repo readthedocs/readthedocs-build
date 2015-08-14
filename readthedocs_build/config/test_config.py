@@ -218,6 +218,38 @@ def describe_validate_setup_py_install():
         validate_bool.assert_any_call('to-validate')
 
 
+def describe_validate_setup_py_path():
+
+    def it_defaults_to_source_file_directory(tmpdir):
+        with tmpdir.as_cwd():
+            source_file = tmpdir.join('subdir', 'readthedocs.yml')
+            setup_py = tmpdir.join('subdir', 'setup.py')
+            build = get_build_config({}, source_file=str(source_file))
+            build.validate_python()
+            assert build['python']['setup_py_path'] == str(setup_py)
+
+    def it_validates_value(tmpdir):
+        with tmpdir.as_cwd():
+            build = get_build_config({'python': {'setup_py_path': 'this-is-string'}})
+            with raises(InvalidConfig) as excinfo:
+                build.validate_python()
+            assert excinfo.value.key == 'python.setup_py_path'
+            assert excinfo.value.code == INVALID_PATH
+
+    def it_uses_validate_file(tmpdir):
+        path = tmpdir.join('setup.py')
+        path.write('content')
+        path = str(path)
+        patcher = patch('readthedocs_build.config.config.validate_file')
+        with patcher as validate_file:
+            validate_file.return_value = path
+            build = get_build_config(
+                {'python': {'setup_py_path': 'setup.py'}})
+            build.validate_python()
+            args, kwargs = validate_file.call_args
+            assert args[0] == 'setup.py'
+
+
 def test_valid_build_config():
     build = BuildConfig(env_config,
                         minimal_config,

@@ -8,6 +8,7 @@ from .parser import parse
 from .validation import validate_bool
 from .validation import validate_choice
 from .validation import validate_directory
+from .validation import validate_file
 from .validation import ValidationError
 
 
@@ -169,6 +170,9 @@ class BuildConfig(dict):
         python = {
             'use_system_site_packages': False,
             'setup_py_install': False,
+            'setup_py_path': os.path.join(
+                os.path.dirname(self.source_file),
+                'setup.py'),
         }
 
         if 'python' in self.raw_config:
@@ -191,6 +195,13 @@ class BuildConfig(dict):
                 with self.catch_validation_error('python.setup_py_install'):
                     python['setup_py_install'] = validate_bool(
                         raw_python['setup_py_install'])
+
+            # Validate setup_py_path.
+            if 'setup_py_path' in raw_python:
+                with self.catch_validation_error('python.setup_py_path'):
+                    base_path = os.path.dirname(self.source_file)
+                    python['setup_py_path'] = validate_file(
+                        raw_python['setup_py_path'], base_path)
 
         self['python'] = python
 

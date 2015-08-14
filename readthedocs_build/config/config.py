@@ -122,6 +122,7 @@ class BuildConfig(dict):
         self.validate_name()
         self.validate_type()
         self.validate_base()
+        self.validate_python()
 
     def validate_output_base(self):
         assert 'output_base' in self.env_config, (

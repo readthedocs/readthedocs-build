@@ -280,9 +280,14 @@ def test_build_validate_calls_all_subvalidators(tmpdir):
                         validate_base=DEFAULT,
                         validate_name=DEFAULT,
                         validate_type=DEFAULT,
+                        validate_python=DEFAULT,
                         validate_output_base=DEFAULT):
         build.validate()
         BuildConfig.validate_base.assert_called_with()
+        BuildConfig.validate_name.assert_called_with()
+        BuildConfig.validate_type.assert_called_with()
+        BuildConfig.validate_python.assert_called_with()
+        BuildConfig.validate_output_base.assert_called_with()
 
 
 def test_validate_project_config():

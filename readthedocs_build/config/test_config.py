@@ -16,6 +16,7 @@ from .config import PYTHON_INVALID
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
 from .validation import INVALID_DIRECTORY
+from .validation import INVALID_PATH
 from .validation import INVALID_STRING
 
 
@@ -268,7 +269,7 @@ def describe_validate_base():
             assert excinfo.value.key == 'base'
             assert excinfo.value.code == INVALID_STRING
 
-    def it_fails_if_base_is_not_a_directory(tmpdir):
+    def it_fails_if_base_does_not_exist(tmpdir):
         apply_fs(tmpdir, minimal_config)
         build = BuildConfig(
             {},
@@ -278,7 +279,7 @@ def describe_validate_base():
         with raises(InvalidConfig) as excinfo:
             build.validate_base()
         assert excinfo.value.key == 'base'
-        assert excinfo.value.code == INVALID_DIRECTORY
+        assert excinfo.value.code == INVALID_PATH
 
 
 def test_build_validate_calls_all_subvalidators(tmpdir):

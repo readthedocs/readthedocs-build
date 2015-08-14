@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
+from mock import patch
 from pytest import raises
+import os
 
 from .validation import validate_bool
 from .validation import validate_choice
 from .validation import validate_directory
+from .validation import validate_path
 from .validation import validate_string
 from .validation import ValidationError
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
 from .validation import INVALID_DIRECTORY
+from .validation import INVALID_PATH
 from .validation import INVALID_STRING
 
 
@@ -48,29 +52,49 @@ def describe_validate_choice():
 
 def describe_validate_directory():
 
-    def it_accepts_relative_path(tmpdir):
-        tmpdir.mkdir('a directory')
-        validate_directory('a directory', str(tmpdir))
-
-    def it_accepts_absolute_path(tmpdir):
-        path = str(tmpdir.mkdir('a directory'))
-        validate_directory(path, 'does not matter')
-
-    def it_only_accepts_strings():
-        with raises(ValidationError) as excinfo:
-            validate_directory(None, '')
-        assert excinfo.value.code == INVALID_STRING
-
-    def it_rejects_non_existent_path(tmpdir):
-        with raises(ValidationError) as excinfo:
-            validate_directory('does not exist', str(tmpdir))
-        assert excinfo.value.code == INVALID_DIRECTORY
+    def it_uses_validate_path(tmpdir):
+        patcher = patch('readthedocs_build.config.validation.validate_path')
+        with patcher as validate_path:
+            path = unicode(tmpdir.mkdir('a directory'))
+            validate_path.return_value = path
+            validate_directory(path, str(tmpdir))
+            validate_path.assert_called_with(path, str(tmpdir))
 
     def it_rejects_files(tmpdir):
         tmpdir.join('file').write('content')
         with raises(ValidationError) as excinfo:
             validate_directory('file', str(tmpdir))
         assert excinfo.value.code == INVALID_DIRECTORY
+
+
+def describe_validate_path():
+
+    def it_accepts_relative_path(tmpdir):
+        tmpdir.mkdir('a directory')
+        validate_path('a directory', str(tmpdir))
+
+    def it_accepts_files(tmpdir):
+        tmpdir.join('file').write('content')
+        validate_path('file', str(tmpdir))
+
+    def it_accepts_absolute_path(tmpdir):
+        path = str(tmpdir.mkdir('a directory'))
+        validate_path(path, 'does not matter')
+
+    def it_returns_absolute_path(tmpdir):
+        tmpdir.mkdir('a directory')
+        path = validate_path('a directory', str(tmpdir))
+        assert path == os.path.abspath(path)
+
+    def it_only_accepts_strings():
+        with raises(ValidationError) as excinfo:
+            validate_path(None, '')
+        assert excinfo.value.code == INVALID_STRING
+
+    def it_rejects_non_existent_path(tmpdir):
+        with raises(ValidationError) as excinfo:
+            validate_path('does not exist', str(tmpdir))
+        assert excinfo.value.code == INVALID_PATH
 
 
 def describe_validate_string():

@@ -1,12 +1,16 @@
+from contextlib import contextmanager
 import re
 import os
 
 from .find import find_all
 from .parser import ParseError
 from .parser import parse
+from .validation import validate_bool
+from .validation import ValidationError
 
 
-__all__ = ('load', 'BuildConfig', 'InvalidConfig', 'ProjectConfig')
+__all__ = (
+    'load', 'BuildConfig', 'ConfigError', 'InvalidConfig', 'ProjectConfig')
 
 
 CONFIG_FILENAME = 'readthedocs.yml'
@@ -21,16 +25,28 @@ NAME_INVALID = 'name-invalid'
 TYPE_REQUIRED = 'type-required'
 TYPE_INVALID = 'type-invalid'
 PYTHON_INVALID = 'python-invalid'
-SETUP_INSTALL_INVALID = 'setup-install-invalid'
-USE_SYSTEM_SITE_PACKAGES_INVALID = 'use-system-site-packages-invalid'
 
 
-class InvalidConfig(Exception):
-    def __init__(self, *args, **kwargs):
-        self.code = kwargs.pop('code')
-        self.source_file = kwargs.pop('source_file', None)
-        self.source_position = kwargs.pop('source_position', None)
-        super(InvalidConfig, self).__init__(*args, **kwargs)
+class ConfigError(Exception):
+    def __init__(self, message, code):
+        self.code = code
+        super(ConfigError, self).__init__(message)
+
+
+class InvalidConfig(ConfigError):
+    message_template = 'Invalid "{key}": {error}'
+
+    def __init__(self, key, code, error_message, source_file=None,
+                 source_position=None):
+        self.key = key
+        self.code = code
+        self.source_file = source_file
+        self.source_position = source_position
+        message = self.message_template.format(
+            key=key,
+            code=code,
+            error=error_message)
+        super(InvalidConfig, self).__init__(message, code=code)
 
 
 class BuildConfig(dict):
@@ -52,12 +68,6 @@ class BuildConfig(dict):
         'Invalid name "{name}". Valid values must match {name_re}')
     TYPE_REQUIRED_MESSAGE = 'Missing key "type"'
     INVALID_TYPE_MESSAGE = 'Invalid type "{type}". Valid values are {valid_types}'
-    SETUP_INSATLL_INVALID_MESSAGE = (
-        'Invalid value for "setup_install". '
-        'It must be "true" or "false"')
-    USE_SYSTEM_SITE_PACKAGES_INVALID_MESSAGE = (
-        'Invalid value for "use_system_site_packages". '
-        'It must be "true" or "false"')
     PYTHON_INVALID_MESSAGE = '"python" section must be a mapping.'
 
     def __init__(self, env_config, raw_config, source_file, source_position):
@@ -66,15 +76,28 @@ class BuildConfig(dict):
         self.source_file = source_file
         self.source_position = source_position
 
-    def error(self, message, code):
+    def error(self, key, message, code):
         source = '{file} [{pos}]'.format(
             file=self.source_file,
             pos=self.source_position)
         raise InvalidConfig(
-            '{source}: {message}'.format(source=source, message=message),
+            key=key,
             code=code,
+            error_message='{source}: {message}'.format(source=source, message=message),
             source_file=self.source_file,
             source_position=self.source_position)
+
+    @contextmanager
+    def catch_validation_error(self, key):
+        try:
+            yield
+        except ValidationError as error:
+            raise InvalidConfig(
+                key=key,
+                code=error.code,
+                error_message=error.message,
+                source_file=self.source_file,
+                source_position=self.source_position)
 
     def get_valid_types(self):
         return (
@@ -109,10 +132,11 @@ class BuildConfig(dict):
     def validate_name(self):
         name = self.raw_config.get('name', None)
         if not name:
-            self.error(self.NAME_REQUIRED_MESSAGE, code=NAME_REQUIRED)
+            self.error('name', self.NAME_REQUIRED_MESSAGE, code=NAME_REQUIRED)
         name_re = r'^[-_.0-9a-zA-Z]+$'
         if not re.match(name_re, name):
             self.error(
+                'name',
                 self.NAME_INVALID_MESSAGE.format(
                     name=name,
                     name_re=name_re),
@@ -123,9 +147,10 @@ class BuildConfig(dict):
     def validate_type(self):
         type = self.raw_config.get('type', None)
         if not type:
-            self.error(self.TYPE_REQUIRED_MESSAGE, code=TYPE_REQUIRED)
+            self.error('type', self.TYPE_REQUIRED_MESSAGE, code=TYPE_REQUIRED)
         if type != 'sphinx':
             self.error(
+                'type',
                 self.INVALID_TYPE_MESSAGE.format(
                     type=type,
                     valid_types=' '.join(
@@ -139,8 +164,10 @@ class BuildConfig(dict):
         if 'base' in self.raw_config:
             base = self.raw_config['base']
             if not isinstance(base, basestring):
-                self.error(self.BASE_INVALID_MESSAGE.format(
-                    base=repr(base)), code=BASE_INVALID)
+                self.error(
+                    'base',
+                    self.BASE_INVALID_MESSAGE.format(base=repr(base)),
+                    code=BASE_INVALID)
             base = os.path.join(
                 os.path.dirname(self.source_file),
                 self.raw_config['base'])
@@ -150,6 +177,7 @@ class BuildConfig(dict):
 
         if not os.path.isdir(base):
             self.error(
+                'base',
                 self.BASE_NOT_A_DIR_MESSAGE.format(base=base),
                 code=BASE_NOT_A_DIR)
 
@@ -161,25 +189,22 @@ class BuildConfig(dict):
             raw_python = self.raw_config['python']
             if not isinstance(raw_python, dict):
                 self.error(
+                    'python',
                     self.PYTHON_INVALID_MESSAGE,
                     code=PYTHON_INVALID)
 
             # Validate use_system_site_packages.
             use_system_site_packages = raw_python.get(
                 'use_system_site_packages', False)
-            if use_system_site_packages not in (True, False, 0, 1):
-                self.error(
-                    self.USE_SYSTEM_SITE_PACKAGES_INVALID_MESSAGE,
-                    code=USE_SYSTEM_SITE_PACKAGES_INVALID)
-            python['use_system_site_packages'] = bool(use_system_site_packages)
+            with self.catch_validation_error(
+                    'python.use_system_site_packages'):
+                python['use_system_site_packages'] = validate_bool(
+                    use_system_site_packages)
 
-            # Validate setup_install..
+            # Validate setup_install.
             setup_install = raw_python.get('setup_install', False)
-            if setup_install not in (True, False, 0, 1):
-                self.error(
-                    self.SETUP_INSATLL_INVALID_MESSAGE,
-                    code=SETUP_INSTALL_INVALID)
-            python['setup_install'] = bool(setup_install)
+            with self.catch_validation_error('python.setup_install'):
+                python['setup_install'] = validate_bool(setup_install)
 
         self['python'] = python
 
@@ -208,7 +233,7 @@ def load(path, env_config):
 
     config_files = list(find_all(path, CONFIG_FILENAME))
     if not config_files:
-        raise InvalidConfig(
+        raise ConfigError(
             'No {filename} found'.format(filename=CONFIG_FILENAME),
             code=CONFIG_REQUIRED)
     build_configs = []
@@ -217,7 +242,7 @@ def load(path, env_config):
             try:
                 configs = parse(file.read())
             except ParseError as error:
-                raise InvalidConfig(
+                raise ConfigError(
                     'Parse error in {filename}: {message}'.format(
                         filename=filename,
                         message=error.message),

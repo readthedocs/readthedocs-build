@@ -4,7 +4,7 @@ import sys
 
 from .build import build
 from .config import load
-from .config import InvalidConfig
+from .config import ConfigError
 from .utils import cd
 
 
@@ -35,7 +35,7 @@ def main(path, outdir):
     with cd(path):
         try:
             project_config = load(os.getcwd(), env_config)
-        except InvalidConfig as error:
+        except ConfigError as error:
             sys.stderr.write('Error: {error}'.format(error=error))
             sys.exit(1)
         build(project_config)

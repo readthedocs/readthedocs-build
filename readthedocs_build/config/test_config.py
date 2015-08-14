@@ -4,6 +4,7 @@ from pytest import raises
 import os
 
 from ..testing.utils import apply_fs
+from .config import ConfigError
 from .config import InvalidConfig
 from .config import load
 from .config import BuildConfig
@@ -15,8 +16,7 @@ from .config import TYPE_REQUIRED
 from .config import NAME_REQUIRED
 from .config import NAME_INVALID
 from .config import PYTHON_INVALID
-from .config import SETUP_INSTALL_INVALID
-from .config import USE_SYSTEM_SITE_PACKAGES_INVALID
+from .validation import INVALID_BOOL
 
 
 env_config = {
@@ -61,7 +61,7 @@ def get_build_config(config, env_config=None, source_file='readthedocs.yml',
 
 def test_load_no_config_file(tmpdir):
     base = str(tmpdir)
-    with raises(InvalidConfig):
+    with raises(ConfigError):
         load(base, env_config)
 
 
@@ -70,7 +70,7 @@ def test_load_empty_config_file(tmpdir):
         'readthedocs.yml': ''
     })
     base = str(tmpdir)
-    with raises(InvalidConfig):
+    with raises(ConfigError):
         load(base, env_config)
 
 
@@ -113,6 +113,7 @@ def test_config_requires_name():
                         source_position=None)
     with raises(InvalidConfig) as excinfo:
         build.validate_name()
+    assert excinfo.value.key == 'name'
     assert excinfo.value.code == NAME_REQUIRED
 
 
@@ -123,6 +124,7 @@ def test_build_requires_valid_name():
                         source_position=None)
     with raises(InvalidConfig) as excinfo:
         build.validate_name()
+    assert excinfo.value.key == 'name'
     assert excinfo.value.code == NAME_INVALID
 
 
@@ -133,6 +135,7 @@ def test_config_requires_type():
                         source_position=None)
     with raises(InvalidConfig) as excinfo:
         build.validate_type()
+    assert excinfo.value.key == 'type'
     assert excinfo.value.code == TYPE_REQUIRED
 
 
@@ -143,6 +146,7 @@ def test_build_requires_valid_type():
                         source_position=None)
     with raises(InvalidConfig) as excinfo:
         build.validate_type()
+    assert excinfo.value.key == 'type'
     assert excinfo.value.code == TYPE_INVALID
 
 
@@ -156,6 +160,7 @@ def test_python_section_must_be_dict():
     build = get_build_config({'python': 123})
     with raises(InvalidConfig) as excinfo:
         build.validate_python()
+    assert excinfo.value.key == 'python'
     assert excinfo.value.code == PYTHON_INVALID
 
 
@@ -166,48 +171,50 @@ def test_use_system_site_packages_defaults_to_false():
     assert not build['python']['use_system_site_packages']
 
 
-def test_use_system_site_packages_must_be_boolean_or_int():
-    build = get_build_config({'python': {'use_system_site_packages': True}})
-    build.validate_python()
-    assert build['python']['use_system_site_packages']
-
-    build = get_build_config({'python': {'use_system_site_packages': 1}})
-    build.validate_python()
-    assert build['python']['use_system_site_packages'] is True
-
-    build = get_build_config({'python': {'use_system_site_packages': 0}})
-    build.validate_python()
-    assert build['python']['use_system_site_packages'] is False
-
-    build = get_build_config({'python': {'use_system_site_packages': 'this-is-string'}})
-    with raises(InvalidConfig) as excinfo:
+def describe_validate_use_system_site_packages():
+    def it_defaults_to_false():
+        build = get_build_config({'python': {}})
         build.validate_python()
-    assert excinfo.value.code == USE_SYSTEM_SITE_PACKAGES_INVALID
+        assert build['python']['setup_install'] is False
 
+    def it_validates_value():
+        build = get_build_config(
+            {'python': {'use_system_site_packages': 'invalid'}})
+        with raises(InvalidConfig) as excinfo:
+            build.validate_python()
+        excinfo.value.key = 'python.use_system_site_packages'
+        excinfo.value.code = INVALID_BOOL
 
-def test_setup_install_defaults_to_false():
-    build = get_build_config({'python': {}})
-    build.validate_python()
-    assert build['python']['setup_install'] is False
-
-
-def test_setup_install_must_be_boolean_or_int():
-    build = get_build_config({'python': {'setup_install': True}})
-    build.validate_python()
-    assert build['python']['setup_install'] is True
-
-    build = get_build_config({'python': {'setup_install': 1}})
-    build.validate_python()
-    assert build['python']['setup_install'] is True
-
-    build = get_build_config({'python': {'setup_install': 0}})
-    build.validate_python()
-    assert build['python']['setup_install'] is False
-
-    build = get_build_config({'python': {'setup_install': 'this-is-string'}})
-    with raises(InvalidConfig) as excinfo:
+    @patch('readthedocs_build.config.config.validate_bool')
+    def it_uses_validate_bool(validate_bool):
+        validate_bool.return_value = True
+        build = get_build_config(
+            {'python': {'use_system_site_packages': 'to-validate'}})
         build.validate_python()
-    assert excinfo.value.code == SETUP_INSTALL_INVALID
+        validate_bool.assert_any_call('to-validate')
+
+
+def describe_validate_setup_install():
+
+    def it_defaults_to_false():
+        build = get_build_config({'python': {}})
+        build.validate_python()
+        assert build['python']['setup_install'] is False
+
+    def it_validates_value():
+        build = get_build_config({'python': {'setup_install': 'this-is-string'}})
+        with raises(InvalidConfig) as excinfo:
+            build.validate_python()
+        assert excinfo.value.key == 'python.setup_install'
+        assert excinfo.value.code == INVALID_BOOL
+
+    @patch('readthedocs_build.config.config.validate_bool')
+    def it_uses_validate_bool(validate_bool):
+        validate_bool.return_value = True
+        build = get_build_config(
+            {'python': {'setup_install': 'to-validate'}})
+        build.validate_python()
+        validate_bool.assert_any_call('to-validate')
 
 
 def test_valid_build_config():
@@ -245,6 +252,7 @@ def test_build_config_invalid_base(tmpdir):
             source_position=0)
         with raises(InvalidConfig) as excinfo:
             build.validate_base()
+        assert excinfo.value.key == 'base'
         assert excinfo.value.code == BASE_INVALID
 
 
@@ -257,6 +265,7 @@ def test_build_config_base_not_a_dir(tmpdir):
         source_position=0)
     with raises(InvalidConfig) as excinfo:
         build.validate_base()
+    assert excinfo.value.key == 'base'
     assert excinfo.value.code == BASE_NOT_A_DIR
 
 

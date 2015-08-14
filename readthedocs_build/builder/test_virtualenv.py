@@ -41,16 +41,28 @@ def test_cleanup_deletes_virtualenv(tmpdir):
         assert not tmpdir.join('venv').exists()
 
 
-def test_python_run(tmpdir):
-    with patch('readthedocs_build.builder.virtualenv.run') as run:
-        with patch.object(VirtualEnv, 'setup'):
-            venv = VirtualEnv()
-            venv.python_run('pip', args=['freeze'])
-            run.assert_called_with([
-                os.path.join(venv.base_path, 'bin', 'python'),
-                os.path.join(venv.base_path, 'bin', 'pip'),
-                'freeze',
-            ])
+def describe_python_run():
+    def it_takes_relative_executable():
+        with patch('readthedocs_build.builder.virtualenv.run') as run:
+            with patch.object(VirtualEnv, 'setup'):
+                venv = VirtualEnv()
+                venv.python_run('pip', args=['freeze'])
+                run.assert_called_with([
+                    os.path.join(venv.base_path, 'bin', 'python'),
+                    os.path.join(venv.base_path, 'bin', 'pip'),
+                    'freeze',
+                ])
+
+    def it_takes_absolute_path_to_script(tmpdir):
+        with patch('readthedocs_build.builder.virtualenv.run') as run:
+            with patch.object(VirtualEnv, 'setup'):
+                setup_py = str(tmpdir.join('setup.py'))
+                venv = VirtualEnv()
+                venv.python_run(setup_py, [])
+                run.assert_called_with([
+                    os.path.join(venv.base_path, 'bin', 'python'),
+                    setup_py,
+                ])
 
 
 def test_install(tmpdir):

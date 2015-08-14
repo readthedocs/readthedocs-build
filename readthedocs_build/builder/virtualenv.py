@@ -20,6 +20,9 @@ class VirtualEnv(object):
         Execute a script from the virtualenv by using the bin/python from the
         virtualenv. That prevents an issue with too long shbangs. See
         https://github.com/rtfd/readthedocs.org/issues/994 for details.
+
+        ``command_bin`` can be the name of an executable installed in the
+        virtualenv or an absolute path to a python script.
         """
         python_bin = os.path.join(self.base_path, 'bin', 'python')
         command_bin = os.path.join(self.base_path, 'bin', command_bin)

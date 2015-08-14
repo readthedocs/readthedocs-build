@@ -168,7 +168,7 @@ class BuildConfig(dict):
     def validate_python(self):
         python = {
             'use_system_site_packages': False,
-            'setup_install': False,
+            'setup_py_install': False,
         }
 
         if 'python' in self.raw_config:
@@ -186,11 +186,11 @@ class BuildConfig(dict):
                     python['use_system_site_packages'] = validate_bool(
                         raw_python['use_system_site_packages'])
 
-            # Validate setup_install.
-            if 'setup_install' in raw_python:
-                with self.catch_validation_error('python.setup_install'):
-                    python['setup_install'] = validate_bool(
-                        raw_python['setup_install'])
+            # Validate setup_py_install.
+            if 'setup_py_install' in raw_python:
+                with self.catch_validation_error('python.setup_py_install'):
+                    python['setup_py_install'] = validate_bool(
+                        raw_python['setup_py_install'])
 
         self['python'] = python
 

@@ -176,7 +176,7 @@ def describe_validate_use_system_site_packages():
     def it_defaults_to_false():
         build = get_build_config({'python': {}})
         build.validate_python()
-        assert build['python']['setup_install'] is False
+        assert build['python']['setup_py_install'] is False
 
     def it_validates_value():
         build = get_build_config(
@@ -195,25 +195,25 @@ def describe_validate_use_system_site_packages():
         validate_bool.assert_any_call('to-validate')
 
 
-def describe_validate_setup_install():
+def describe_validate_setup_py_install():
 
     def it_defaults_to_false():
         build = get_build_config({'python': {}})
         build.validate_python()
-        assert build['python']['setup_install'] is False
+        assert build['python']['setup_py_install'] is False
 
     def it_validates_value():
-        build = get_build_config({'python': {'setup_install': 'this-is-string'}})
+        build = get_build_config({'python': {'setup_py_install': 'this-is-string'}})
         with raises(InvalidConfig) as excinfo:
             build.validate_python()
-        assert excinfo.value.key == 'python.setup_install'
+        assert excinfo.value.key == 'python.setup_py_install'
         assert excinfo.value.code == INVALID_BOOL
 
     @patch('readthedocs_build.config.config.validate_bool')
     def it_uses_validate_bool(validate_bool):
         validate_bool.return_value = True
         build = get_build_config(
-            {'python': {'setup_install': 'to-validate'}})
+            {'python': {'setup_py_install': 'to-validate'}})
         build.validate_python()
         validate_bool.assert_any_call('to-validate')
 
@@ -228,7 +228,7 @@ def test_valid_build_config():
     assert build['type'] == 'sphinx'
     assert build['base']
     assert build['python']
-    assert 'setup_install' in build['python']
+    assert 'setup_py_install' in build['python']
     assert 'use_system_site_packages' in build['python']
     assert build['output_base']
 

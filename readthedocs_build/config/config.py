@@ -21,6 +21,7 @@ NAME_INVALID = 'name-invalid'
 TYPE_REQUIRED = 'type-required'
 TYPE_INVALID = 'type-invalid'
 PYTHON_INVALID = 'python-invalid'
+SETUP_INSTALL_INVALID = 'setup-install-invalid'
 USE_SYSTEM_SITE_PACKAGES_INVALID = 'use-system-site-packages-invalid'
 
 
@@ -51,6 +52,9 @@ class BuildConfig(dict):
         'Invalid name "{name}". Valid values must match {name_re}')
     TYPE_REQUIRED_MESSAGE = 'Missing key "type"'
     INVALID_TYPE_MESSAGE = 'Invalid type "{type}". Valid values are {valid_types}'
+    SETUP_INSATLL_INVALID_MESSAGE = (
+        'Invalid value for "setup_install". '
+        'It must be "true" or "false"')
     USE_SYSTEM_SITE_PACKAGES_INVALID_MESSAGE = (
         'Invalid value for "use_system_site_packages". '
         'It must be "true" or "false"')
@@ -159,6 +163,8 @@ class BuildConfig(dict):
                 self.error(
                     self.PYTHON_INVALID_MESSAGE,
                     code=PYTHON_INVALID)
+
+            # Validate use_system_site_packages.
             use_system_site_packages = raw_python.get(
                 'use_system_site_packages', False)
             if use_system_site_packages not in (True, False, 0, 1):
@@ -166,6 +172,14 @@ class BuildConfig(dict):
                     self.USE_SYSTEM_SITE_PACKAGES_INVALID_MESSAGE,
                     code=USE_SYSTEM_SITE_PACKAGES_INVALID)
             python['use_system_site_packages'] = bool(use_system_site_packages)
+
+            # Validate setup_install..
+            setup_install = raw_python.get('setup_install', False)
+            if setup_install not in (True, False, 0, 1):
+                self.error(
+                    self.SETUP_INSATLL_INVALID_MESSAGE,
+                    code=SETUP_INSTALL_INVALID)
+            python['setup_install'] = bool(setup_install)
 
         self['python'] = python
 

@@ -15,6 +15,7 @@ from .config import TYPE_REQUIRED
 from .config import NAME_REQUIRED
 from .config import NAME_INVALID
 from .config import PYTHON_INVALID
+from .config import SETUP_INSTALL_INVALID
 from .config import USE_SYSTEM_SITE_PACKAGES_INVALID
 
 
@@ -182,6 +183,31 @@ def test_use_system_site_packages_must_be_boolean_or_int():
     with raises(InvalidConfig) as excinfo:
         build.validate_python()
     assert excinfo.value.code == USE_SYSTEM_SITE_PACKAGES_INVALID
+
+
+def test_setup_install_defaults_to_false():
+    build = get_build_config({'python': {}})
+    build.validate_python()
+    assert build['python']['setup_install'] is False
+
+
+def test_setup_install_must_be_boolean_or_int():
+    build = get_build_config({'python': {'setup_install': True}})
+    build.validate_python()
+    assert build['python']['setup_install'] is True
+
+    build = get_build_config({'python': {'setup_install': 1}})
+    build.validate_python()
+    assert build['python']['setup_install'] is True
+
+    build = get_build_config({'python': {'setup_install': 0}})
+    build.validate_python()
+    assert build['python']['setup_install'] is False
+
+    build = get_build_config({'python': {'setup_install': 'this-is-string'}})
+    with raises(InvalidConfig) as excinfo:
+        build.validate_python()
+    assert excinfo.value.code == SETUP_INSTALL_INVALID
 
 
 def test_valid_build_config():

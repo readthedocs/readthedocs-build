@@ -16,7 +16,7 @@ def parse(stream):
     Everything else raises a ``ParseError``.
     """
     try:
-        configs = list(yaml.load_all(stream))
+        configs = list(yaml.safe_load_all(stream))
     except yaml.YAMLError as error:
         raise ParseError('YAML: {message}'.format(message=error))
     if not configs:

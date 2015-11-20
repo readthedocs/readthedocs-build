@@ -1,6 +1,7 @@
 *.pyc
 *.egg-info
 _build
-readthedocs_output
+_readthedocs_build
 autoapi
 _build_rtd
+/.tox/

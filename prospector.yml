@@ -5,9 +5,22 @@ doc-warnings: true
 
 ignore-patterns:
   - /migrations/
+  - /integration_tests/
 
 pep8:
   full: true
+  options:
+    max-line-length: 100
+
+pylint:
+  options:
+    dummy-variables-rgx: '_$|__$|dummy'
+    max-line-length: 100
+  disable:
+    - logging-format-interpolation
 
 mccabe:
+  run: false
+
+pep257:
   run: false

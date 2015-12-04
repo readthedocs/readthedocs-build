@@ -60,12 +60,12 @@ def validate_file(value, base_path):
 
 
 def validate_path(value, base_path):
-    value = validate_string(value)
-    value = os.path.join(base_path, value)
-    value = os.path.abspath(value)
-    if not os.path.exists(value):
+    string_value = validate_string(value)
+    pathed_value = os.path.join(base_path, string_value)
+    final_value = os.path.abspath(pathed_value)
+    if not os.path.exists(final_value):
         raise ValidationError(value, INVALID_PATH)
-    return value
+    return final_value
 
 
 def validate_string(value):

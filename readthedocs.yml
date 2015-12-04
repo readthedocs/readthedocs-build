@@ -1,8 +1,2 @@
-build_types: [html]
-documentation_type: sphinx
-root: docs
-env_path: docs_env
-interpreter: python2
-language: en
-output_path: _build_rtd
-type: git
+name: read-the-docs
+type: sphinx

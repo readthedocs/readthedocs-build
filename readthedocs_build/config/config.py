@@ -150,7 +150,6 @@ class BuildConfig(dict):
         self['output_base'] = os.path.abspath(
             os.path.join(
                 self.env_config.get('output_base', base_path),
-                'readthedocs-output'
             )
         )
 
@@ -259,8 +258,9 @@ class BuildConfig(dict):
             return None
 
         requirements_file = self.raw_config['requirements_file']
+        base_path = os.path.dirname(self.source_file)
         with self.catch_validation_error('requirements_file'):
-            validate_file(requirements_file)
+            validate_file(requirements_file, base_path)
         self['requirements_file'] = requirements_file
 
     def validate_conf_file(self):
@@ -269,8 +269,9 @@ class BuildConfig(dict):
             return None
 
         conf_file = self.raw_config['conf_file']
+        base_path = os.path.dirname(self.source_file)
         with self.catch_validation_error('conf_file'):
-            validate_file(conf_file)
+            validate_file(conf_file, base_path)
         self['conf_file'] = conf_file
 
 

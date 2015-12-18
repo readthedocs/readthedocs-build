@@ -251,7 +251,7 @@ class BuildConfig(dict):
                     conda['file'] = validate_file(
                         raw_conda['file'], base_path)
 
-        self['conda'] = conda
+            self['conda'] = conda
 
     def validate_requirements_file(self):
         if 'requirements_file' not in self.raw_config:

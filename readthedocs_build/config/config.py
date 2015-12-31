@@ -156,6 +156,8 @@ class BuildConfig(dict):
     def validate_name(self):
         name = self.raw_config.get('name', None)
         if not name:
+            name = self.env_config.get('name', None)
+        if not name:
             self.error('name', self.NAME_REQUIRED_MESSAGE, code=NAME_REQUIRED)
         name_re = r'^[-_.0-9a-zA-Z]+$'
         if not re.match(name_re, name):

@@ -171,10 +171,12 @@ class BuildConfig(dict):
         self['name'] = name
 
     def validate_type(self):
-        if 'type' not in self.raw_config:
+        type = self.raw_config.get('type', None)
+        if not type:
+            type = self.env_config.get('type', None)
+        if not type:
             self.error('type', self.TYPE_REQUIRED_MESSAGE, code=TYPE_REQUIRED)
 
-        type = self.raw_config['type']
         with self.catch_validation_error('type'):
             validate_choice(type, self.get_valid_types())
 

@@ -25,11 +25,13 @@ CONFIG_SYNTAX_INVALID = 'config-syntax-invalid'
 CONFIG_REQUIRED = 'config-required'
 NAME_REQUIRED = 'name-required'
 NAME_INVALID = 'name-invalid'
+CONF_FILE_REQUIRED = 'conf-file-required'
 TYPE_REQUIRED = 'type-required'
 PYTHON_INVALID = 'python-invalid'
 
 
 class ConfigError(Exception):
+
     def __init__(self, message, code):
         self.code = code
         super(ConfigError, self).__init__(message)
@@ -52,6 +54,7 @@ class InvalidConfig(ConfigError):
 
 
 class BuildConfig(dict):
+
     """
     Config that handles the build of one particular documentation. Config keys
     can be accessed with a dictionary lookup::
@@ -69,6 +72,7 @@ class BuildConfig(dict):
     NAME_INVALID_MESSAGE = (
         'Invalid name "{name}". Valid values must match {name_re}')
     TYPE_REQUIRED_MESSAGE = 'Missing key "type"'
+    CONF_FILE_REQUIRED_MESSAGE = 'Missing key "conf_file"'
     PYTHON_INVALID_MESSAGE = '"python" section must be a mapping.'
 
     def __init__(self, env_config, raw_config, source_file, source_position):
@@ -105,6 +109,15 @@ class BuildConfig(dict):
             'sphinx',
         )
 
+    def get_valid_python_versions(self):
+        return (
+            2,
+            2.7,
+            3,
+            3.4,
+            3.5,
+        )
+
     def validate(self):
         """
         Validate and process config into ``config`` attribute that contains the
@@ -126,13 +139,24 @@ class BuildConfig(dict):
         self.validate_base()
         self.validate_python()
 
+        self.validate_conda()
+        self.validate_requirements_file()
+        self.validate_conf_file()
+
     def validate_output_base(self):
         assert 'output_base' in self.env_config, (
-            '"output_base" required in "env_config"')
-        self['output_base'] = os.path.abspath(self.env_config['output_base'])
+               '"output_base" required in "env_config"')
+        base_path = os.path.dirname(self.source_file)
+        self['output_base'] = os.path.abspath(
+            os.path.join(
+                self.env_config.get('output_base', base_path),
+            )
+        )
 
     def validate_name(self):
         name = self.raw_config.get('name', None)
+        if not name:
+            name = self.env_config.get('name', None)
         if not name:
             self.error('name', self.NAME_REQUIRED_MESSAGE, code=NAME_REQUIRED)
         name_re = r'^[-_.0-9a-zA-Z]+$'
@@ -147,10 +171,12 @@ class BuildConfig(dict):
         self['name'] = name
 
     def validate_type(self):
-        if 'type' not in self.raw_config:
+        type = self.raw_config.get('type', None)
+        if not type:
+            type = self.env_config.get('type', None)
+        if not type:
             self.error('type', self.TYPE_REQUIRED_MESSAGE, code=TYPE_REQUIRED)
 
-        type = self.raw_config['type']
         with self.catch_validation_error('type'):
             validate_choice(type, self.get_valid_types())
 
@@ -173,6 +199,7 @@ class BuildConfig(dict):
             'setup_py_path': os.path.join(
                 os.path.dirname(self.source_file),
                 'setup.py'),
+            'version': 2,
         }
 
         if 'python' in self.raw_config:
@@ -203,10 +230,57 @@ class BuildConfig(dict):
                     python['setup_py_path'] = validate_file(
                         raw_python['setup_py_path'], base_path)
 
+            if 'version' in raw_python:
+                with self.catch_validation_error('python.version'):
+                    python['version'] = validate_choice(
+                        raw_python['version'], self.get_valid_python_versions()
+                    )
+
         self['python'] = python
+
+    def validate_conda(self):
+        conda = {}
+
+        if 'conda' in self.raw_config:
+            raw_conda = self.raw_config['conda']
+            if not isinstance(raw_conda, dict):
+                self.error(
+                    'conda',
+                    self.PYTHON_INVALID_MESSAGE,
+                    code=PYTHON_INVALID)
+
+            if 'file' in raw_conda:
+                with self.catch_validation_error('conda.file'):
+                    base_path = os.path.dirname(self.source_file)
+                    conda['file'] = validate_file(
+                        raw_conda['file'], base_path)
+
+            self['conda'] = conda
+
+    def validate_requirements_file(self):
+        if 'requirements_file' not in self.raw_config:
+            return None
+
+        requirements_file = self.raw_config['requirements_file']
+        base_path = os.path.dirname(self.source_file)
+        with self.catch_validation_error('requirements_file'):
+            validate_file(requirements_file, base_path)
+        self['requirements_file'] = requirements_file
+
+    def validate_conf_file(self):
+        if 'conf_file' not in self.raw_config:
+            # self.error('conf_file', self.CONF_FILE_REQUIRED_MESSAGE, code=CONF_FILE_REQUIRED)
+            return None
+
+        conf_file = self.raw_config['conf_file']
+        base_path = os.path.dirname(self.source_file)
+        with self.catch_validation_error('conf_file'):
+            validate_file(conf_file, base_path)
+        self['conf_file'] = conf_file
 
 
 class ProjectConfig(list):
+
     """
     Wrapper for multiple build configs.
     """

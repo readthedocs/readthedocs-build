@@ -218,6 +218,19 @@ def describe_validate_setup_py_install():
         validate_bool.assert_any_call('to-validate')
 
 
+def describe_validate_formats():
+
+    def it_defaults_to_all_options():
+        build = get_build_config()
+        build.validate_formats()
+        assert build['formats'] == ('htmlzip', 'pdf', 'epub')
+
+    def it_gets_set_correctly():
+        build = get_build_config({'formats': ['pdf']})
+        build.validate_formats()
+        assert build['formats'] == ('pdf')
+
+
 def describe_validate_setup_py_path():
 
     def it_defaults_to_source_file_directory(tmpdir):

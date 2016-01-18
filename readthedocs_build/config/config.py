@@ -118,6 +118,14 @@ class BuildConfig(dict):
             3.5,
         )
 
+    def get_valid_formats(self):
+        return (
+            'html',
+            'htmlzip',
+            'pdf',
+            'epub',
+        )
+
     def validate(self):
         """
         Validate and process config into ``config`` attribute that contains the
@@ -138,6 +146,7 @@ class BuildConfig(dict):
         self.validate_type()
         self.validate_base()
         self.validate_python()
+        self.validate_formats()
 
         self.validate_conda()
         self.validate_requirements_file()
@@ -277,6 +286,18 @@ class BuildConfig(dict):
         with self.catch_validation_error('conf_file'):
             validate_file(conf_file, base_path)
         self['conf_file'] = conf_file
+
+    def validate_formats(self):
+        if 'formats' not in self.raw_config:
+            return None
+        else:
+            _formats = self.get_valid_formats()
+
+        _formats = self.raw_config['format']
+        with self.catch_validation_error('format'):
+            for _format in _formats:
+                validate_choice(_format, self.get_valid_formats())
+        self['format'] = _formats
 
 
 class ProjectConfig(list):

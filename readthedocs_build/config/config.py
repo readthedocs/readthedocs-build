@@ -296,7 +296,7 @@ class BuildConfig(dict):
         with self.catch_validation_error('format'):
             for _format in _formats:
                 validate_choice(_format, self.get_valid_formats())
-        self['format'] = _formats
+        self['formats'] = _formats
 
 
 class ProjectConfig(list):

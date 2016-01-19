@@ -228,7 +228,7 @@ def describe_validate_formats():
     def it_gets_set_correctly():
         build = get_build_config({'formats': ['pdf']})
         build.validate_formats()
-        assert build['formats'] == ('pdf')
+        assert 'pdf' in build['formats']
 
 
 def describe_validate_setup_py_path():

@@ -287,12 +287,10 @@ class BuildConfig(dict):
         self['conf_file'] = conf_file
 
     def validate_formats(self):
-        if 'formats' not in self.raw_config:
-            return None
+        if 'formats' in self.raw_config:
+            _formats = self.raw_config['formats']
         else:
             _formats = self.get_valid_formats()
-
-        _formats = self.raw_config['formats']
         with self.catch_validation_error('format'):
             for _format in _formats:
                 validate_choice(_format, self.get_valid_formats())

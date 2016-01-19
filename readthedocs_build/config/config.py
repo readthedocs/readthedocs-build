@@ -292,7 +292,7 @@ class BuildConfig(dict):
         else:
             _formats = self.get_valid_formats()
 
-        _formats = self.raw_config['format']
+        _formats = self.raw_config['formats']
         with self.catch_validation_error('format'):
             for _format in _formats:
                 validate_choice(_format, self.get_valid_formats())

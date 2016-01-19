@@ -221,7 +221,7 @@ def describe_validate_setup_py_install():
 def describe_validate_formats():
 
     def it_defaults_to_all_options():
-        build = get_build_config()
+        build = get_build_config({})
         build.validate_formats()
         assert build['formats'] == ('htmlzip', 'pdf', 'epub')
 

@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name='readthedocs-build',
-    version='2.0.1',
+    version='2.0.2',
     author='Eric Holscher',
     author_email='eric@ericholscher.com',
     url='https://readthedocs.org',

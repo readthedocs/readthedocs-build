@@ -223,7 +223,7 @@ def describe_validate_formats():
     def it_defaults_to_all_options():
         build = get_build_config({})
         build.validate_formats()
-        assert build['formats'] == ('htmlzip', 'pdf', 'epub')
+        assert 'formats' not in build
 
     def it_gets_set_correctly():
         build = get_build_config({'formats': ['pdf']})

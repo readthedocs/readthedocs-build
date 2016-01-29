@@ -228,12 +228,12 @@ def describe_validate_formats():
     def it_gets_set_correctly():
         build = get_build_config({'formats': ['pdf']})
         build.validate_formats()
-        assert 'pdf' in build['formats']
+        assert build['formats'] == ['pdf']
 
     def formats_can_be_empty():
-        build = get_build_config({'formats': 'none'})
+        build = get_build_config({'formats': ['none']})
         build.validate_formats()
-        assert build['formats'] == []
+        assert build['formats'] == ['none']
 
 
 def describe_validate_setup_py_path():

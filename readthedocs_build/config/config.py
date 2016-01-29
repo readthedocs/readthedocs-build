@@ -288,7 +288,7 @@ class BuildConfig(dict):
         self['conf_file'] = conf_file
 
     def validate_formats(self):
-        if 'formats' not in self.raw_config:
+        if 'formats' not in self.raw_config or self.raw_config['formats'] is None:
             return None
         # Support none of the above formats
         if self.raw_config['formats'].lower() == 'none':

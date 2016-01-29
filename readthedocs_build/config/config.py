@@ -120,6 +120,7 @@ class BuildConfig(dict):
 
     def get_valid_formats(self):
         return (
+            'none'
             'htmlzip',
             'pdf',
             'epub',
@@ -289,8 +290,12 @@ class BuildConfig(dict):
     def validate_formats(self):
         if 'formats' not in self.raw_config:
             return None
+        # Support none of the above formats
+        if self.raw_config['formats'].lower() == 'none':
+            _formats = []
+        else:
+            _formats = self.raw_config['formats']
 
-        _formats = self.raw_config['formats']
         with self.catch_validation_error('format'):
             for _format in _formats:
                 validate_choice(_format, self.get_valid_formats())

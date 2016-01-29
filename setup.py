@@ -19,7 +19,6 @@ setup(
         "PyYAML>=3.0",
         "Sphinx>=1.3",
         "Docutils",
-        "sphinx-autobuild",
         "readthedocs-sphinx-ext",
         "recommonmark",
         "click>=4.0",

@@ -204,6 +204,7 @@ class BuildConfig(dict):
     def validate_python(self):
         python = {
             'use_system_site_packages': False,
+            'pip_install': False,
             'setup_py_install': False,
             'setup_py_path': os.path.join(
                 os.path.dirname(self.source_file),
@@ -225,6 +226,12 @@ class BuildConfig(dict):
                         'python.use_system_site_packages'):
                     python['use_system_site_packages'] = validate_bool(
                         raw_python['use_system_site_packages'])
+
+            # Validate pip_install.
+            if 'pip_install' in raw_python:
+                with self.catch_validation_error('python.pip_install'):
+                    python['pip_install'] = validate_bool(
+                        raw_python['pip_install'])
 
             # Validate setup_py_install.
             if 'setup_py_install' in raw_python:

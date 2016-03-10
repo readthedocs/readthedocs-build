@@ -172,6 +172,13 @@ def test_use_system_site_packages_defaults_to_false():
     assert not build['python']['use_system_site_packages']
 
 
+def test_python_pip_install_default():
+    build = get_build_config({'python': {}})
+    build.validate_python()
+    # Default is False.
+    assert build['python']['pip_install'] is False
+
+
 def describe_validate_use_system_site_packages():
     def it_defaults_to_false():
         build = get_build_config({'python': {}})

@@ -2,6 +2,7 @@
 from mock import patch
 from pytest import raises
 import os
+from six import text_type
 
 from .validation import validate_bool
 from .validation import validate_choice
@@ -85,7 +86,7 @@ def describe_validate_directory():
     def it_uses_validate_path(tmpdir):
         patcher = patch('readthedocs_build.config.validation.validate_path')
         with patcher as validate_path:
-            path = unicode(tmpdir.mkdir('a directory'))
+            path = text_type(tmpdir.mkdir('a directory'))
             validate_path.return_value = path
             validate_directory(path, str(tmpdir))
             validate_path.assert_called_with(path, str(tmpdir))
@@ -150,11 +151,11 @@ def describe_validate_string():
 
     def it_accepts_unicode():
         result = validate_string(u'Unicöde')
-        assert isinstance(result, unicode)
+        assert isinstance(result, text_type)
 
     def it_accepts_nonunicode():
         result = validate_string('Unicode')
-        assert isinstance(result, unicode)
+        assert isinstance(result, text_type)
 
     def it_rejects_float():
         with raises(ValidationError) as excinfo:

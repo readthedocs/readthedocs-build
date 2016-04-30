@@ -23,6 +23,8 @@ setup(
         "recommonmark",
         "click>=4.0",
         "virtualenv",
+        "six",
+        "mock"
     ],
     entry_points={
         'console_scripts': [

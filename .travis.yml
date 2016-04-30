@@ -5,6 +5,8 @@ sudo: false
 env:
   - TOX_ENV=py27-unittest
   - TOX_ENV=py27-integration
+  - TOX_ENV=py35-unittest
+  - TOX_ENV=py35-integration
   - TOX_ENV=lint
   #- TOX_ENV=docs
 install:

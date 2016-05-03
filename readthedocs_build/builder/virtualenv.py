@@ -10,9 +10,14 @@ class VirtualEnv(object):
     Light abstraction of a virtualenv.
     """
 
-    def __init__(self, system_site_packages=False):
+    def __init__(self, python_config=None):
         self.base_path = tempfile.mkdtemp()
-        self.system_site_packages = system_site_packages
+
+        if python_config is None:
+            python_config = {}
+        self.system_site_packages = python_config.get('use_system_site_packages', False)
+        self.python_version = python_config.get('version', '2.7')
+
         self.setup()
 
     def python_run(self, command_bin, args):
@@ -35,7 +40,7 @@ class VirtualEnv(object):
         params = [
             'virtualenv',
             self.base_path,
-            '--python=/usr/bin/python2.7',
+            '--python=/usr/bin/python{}'.format(self.python_version),
         ]
         if self.system_site_packages:
             params.append('--system-site-packages')

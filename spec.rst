@@ -136,6 +136,11 @@ Following mapping keys are supported (all but the marked once are optional):
         path/to/requirements.txt``. Accepts version modifiers like
         ``setuptools>=18.0``.
 
+    ``extra_requirements``
+        A list of `extra requirements`_ sections to install, additionnaly to
+        the `package default dependencies`_. Ignored if the ``setup_install``
+        option below is ``true``.
+
     ``setup_install``
         If ``true``, then ``python setup.py install`` will be executed before
         building the docs.
@@ -146,3 +151,7 @@ Following mapping keys are supported (all but the marked once are optional):
 
 ``language``
     The language the doc is written in. Defaults to empty string.
+
+
+.. _extra requirements: http://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies
+.. _package default dependencies: http://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-dependencies

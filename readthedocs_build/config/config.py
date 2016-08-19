@@ -9,6 +9,7 @@ from .validation import validate_bool
 from .validation import validate_choice
 from .validation import validate_directory
 from .validation import validate_file
+from .validation import validate_string
 from .validation import ValidationError
 
 
@@ -74,6 +75,8 @@ class BuildConfig(dict):
     TYPE_REQUIRED_MESSAGE = 'Missing key "type"'
     CONF_FILE_REQUIRED_MESSAGE = 'Missing key "conf_file"'
     PYTHON_INVALID_MESSAGE = '"python" section must be a mapping.'
+    PYTHON_EXTRA_REQUIREMENTS_INVALID_MESSAGE = (
+        '"python.extra_requirements" section must be a list.')
 
     def __init__(self, env_config, raw_config, source_file, source_position):
         self.env_config = env_config
@@ -205,6 +208,7 @@ class BuildConfig(dict):
         python = {
             'use_system_site_packages': False,
             'pip_install': False,
+            'extra_requirements': [],
             'setup_py_install': False,
             'setup_py_path': os.path.join(
                 os.path.dirname(self.source_file),
@@ -232,6 +236,20 @@ class BuildConfig(dict):
                 with self.catch_validation_error('python.pip_install'):
                     python['pip_install'] = validate_bool(
                         raw_python['pip_install'])
+
+            # Validate extra_requirements.
+            if 'extra_requirements' in raw_python:
+                raw_extra_requirements = raw_python['extra_requirements']
+                if not isinstance(raw_extra_requirements, list):
+                    self.error(
+                        'python.extra_requirements',
+                        self.PYTHON_EXTRA_REQUIREMENTS_INVALID_MESSAGE,
+                        code=PYTHON_INVALID)
+                for extra_name in raw_extra_requirements:
+                    with self.catch_validation_error(
+                            'python.extra_requirements'):
+                        python['extra_requirements'].append(
+                            validate_string(extra_name))
 
             # Validate setup_py_install.
             if 'setup_py_install' in raw_python:

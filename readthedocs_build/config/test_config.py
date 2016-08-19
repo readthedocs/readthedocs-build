@@ -179,6 +179,31 @@ def test_python_pip_install_default():
     assert build['python']['pip_install'] is False
 
 
+def describe_validate_python_extra_requirements():
+
+    def it_defaults_to_list():
+        build = get_build_config({'python': {}})
+        build.validate_python()
+        # Default is an empty list.
+        assert build['python']['extra_requirements'] == []
+
+    def it_validates_is_a_list():
+        build = get_build_config(
+            {'python': {'extra_requirements': 'invalid'}})
+        with raises(InvalidConfig) as excinfo:
+            build.validate_python()
+        assert excinfo.value.key == 'python.extra_requirements'
+        assert excinfo.value.code == PYTHON_INVALID
+
+    @patch('readthedocs_build.config.config.validate_string')
+    def it_uses_validate_string(validate_string):
+        validate_string.return_value = True
+        build = get_build_config(
+            {'python': {'extra_requirements': ['tests']}})
+        build.validate_python()
+        validate_string.assert_any_call('tests')
+
+
 def describe_validate_use_system_site_packages():
     def it_defaults_to_false():
         build = get_build_config({'python': {}})

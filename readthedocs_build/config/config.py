@@ -17,7 +17,7 @@ __all__ = (
     'load', 'BuildConfig', 'ConfigError', 'InvalidConfig', 'ProjectConfig')
 
 
-CONFIG_FILENAME = 'readthedocs.yml'
+CONFIG_FILENAMES = ('readthedocs.yml', '.readthedocs.yml')
 
 
 BASE_INVALID = 'base-invalid'
@@ -346,11 +346,14 @@ def load(path, env_config):
     The config will be validated.
     """
 
-    config_files = list(find_all(path, (CONFIG_FILENAME,)))
+    config_files = list(find_all(path, CONFIG_FILENAMES))
     if not config_files:
-        raise ConfigError(
-            'No {filename} found'.format(filename=CONFIG_FILENAME),
-            code=CONFIG_REQUIRED)
+        files = '{}'.format(', '.join(map(repr, CONFIG_FILENAMES[:-1])))
+        if files:
+            files += ' or '
+        files += '{!r}'.format(CONFIG_FILENAMES[-1])
+        raise ConfigError('No files {} found'.format(files),
+                          code=CONFIG_REQUIRED)
     build_configs = []
     for filename in config_files:
         with open(filename, 'r') as file:

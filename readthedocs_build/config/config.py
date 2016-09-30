@@ -346,7 +346,7 @@ def load(path, env_config):
     The config will be validated.
     """
 
-    config_files = list(find_all(path, CONFIG_FILENAME))
+    config_files = list(find_all(path, (CONFIG_FILENAME,)))
     if not config_files:
         raise ConfigError(
             'No {filename} found'.format(filename=CONFIG_FILENAME),

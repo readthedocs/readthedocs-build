@@ -1,8 +1,9 @@
 import os
 
 
-def find_all(path, filename):
+def find_all(path, filenames):
     path = os.path.abspath(path)
     for root, dirs, files in os.walk(path):
-        if filename in files:
-            yield os.path.abspath(os.path.join(root, filename))
+        for filename in filenames:
+            if filename in files:
+                yield os.path.abspath(os.path.join(root, filename))

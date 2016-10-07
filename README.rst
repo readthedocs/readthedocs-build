@@ -24,8 +24,8 @@ Running a build is simple::
 
     rtd-build
 
-This will search for all ``readthedocs.yml`` files below your current directory
-and will build your documentation.
+This will search for all ``readthedocs.yml`` (or ``.readthedocs.yml``) files
+below your current directory and will build your documentation.
 
 You can set a specific a directory where the built documentation should be
 stored::

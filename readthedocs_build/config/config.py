@@ -91,7 +91,8 @@ class BuildConfig(dict):
         raise InvalidConfig(
             key=key,
             code=code,
-            error_message='{source}: {message}'.format(source=source, message=message),
+            error_message='{source}: {message}'.format(source=source,
+                                                       message=message),
             source_file=self.source_file,
             source_position=self.source_position)
 
@@ -103,7 +104,7 @@ class BuildConfig(dict):
             raise InvalidConfig(
                 key=key,
                 code=error.code,
-                error_message=error.message,
+                error_message=str(error),
                 source_file=self.source_file,
                 source_position=self.source_position)
 
@@ -363,7 +364,7 @@ def load(path, env_config):
                 raise ConfigError(
                     'Parse error in {filename}: {message}'.format(
                         filename=filename,
-                        message=error.message),
+                        message=str(error)),
                     code=CONFIG_SYNTAX_INVALID)
             for i, config in enumerate(configs):
                 build_config = BuildConfig(

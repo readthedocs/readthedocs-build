@@ -155,6 +155,8 @@ class BuildConfig(dict):
         self.validate_requirements_file()
         self.validate_conf_file()
 
+        self.validate_pdflatex()
+
     def validate_output_base(self):
         assert 'output_base' in self.env_config, (
                '"output_base" required in "env_config"')
@@ -290,6 +292,13 @@ class BuildConfig(dict):
                         raw_conda['file'], base_path)
 
             self['conda'] = conda
+
+    def validate_pdflatex(self):
+        if 'pdflatex' not in self.raw_config:
+            self['pdflatex'] = validate_string('pdflatex')
+        else:
+            with self.catch_validation_error('pdflatex'):
+                self['pdflatex'] = validate_string(self.raw_config['pdflatex'])
 
     def validate_requirements_file(self):
         if 'requirements_file' not in self.raw_config:

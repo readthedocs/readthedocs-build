@@ -12,7 +12,8 @@ class SphinxBuilder(BaseBuilder):
     """
 
     python_dependencies = BaseBuilder.python_dependencies + (
-        'Sphinx==1.3.1',
+        'Sphinx>=1.3.1',
+        'Docutils==0.12'
     )
 
     def _run_sphinx_build(self, format, out_dir):

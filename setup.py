@@ -18,7 +18,7 @@ setup(
     install_requires=[
         "PyYAML>=3.0",
         "Sphinx>=1.3",
-        "Docutils",
+        "Docutils==0.12",
         "readthedocs-sphinx-ext",
         "recommonmark",
         "click>=4.0",

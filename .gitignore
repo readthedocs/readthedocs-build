@@ -5,3 +5,4 @@ _readthedocs_build
 autoapi
 _build_rtd
 /.tox/
+.idea/

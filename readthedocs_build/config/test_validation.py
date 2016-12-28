@@ -160,3 +160,4 @@ def describe_validate_url():
         with raises(ValidationError) as excinfo:
             validate_url("http:///test")
         assert excinfo.value.code == INVALID_URL
+        assert validate_url("file:///test") == "file:///test"

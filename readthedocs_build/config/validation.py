@@ -82,6 +82,8 @@ def validate_url(value):
     parsed = urlparse.urlparse(string_value)
     if not parsed.scheme:
         raise ValidationError(value, INVALID_URL)
-    if not parsed.netloc:
-        raise ValidationError(value, INVALID_URL)
+    # Expand as necessary for schemes that allow no hostname
+    if parsed.scheme not in ["file"]:
+        if not parsed.netloc:
+            raise ValidationError(value, INVALID_URL)
     return string_value

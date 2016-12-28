@@ -9,6 +9,7 @@ from .validation import validate_directory
 from .validation import validate_file
 from .validation import validate_path
 from .validation import validate_string
+from .validation import validate_url
 from .validation import ValidationError
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
@@ -16,6 +17,7 @@ from .validation import INVALID_DIRECTORY
 from .validation import INVALID_FILE
 from .validation import INVALID_PATH
 from .validation import INVALID_STRING
+from .validation import INVALID_URL
 
 
 def describe_validate_bool():
@@ -137,3 +139,25 @@ def describe_validate_string():
         with raises(ValidationError) as excinfo:
             validate_string(None)
         assert excinfo.value.code == INVALID_STRING
+
+
+def describe_validate_url():
+
+    def it_accepts_complex_urls():
+        result = validate_url("ftp://user:password@www.example.com/test?myvalue=test")
+        assert isinstance(result, basestring)
+
+    def it_accepts_simple_urls():
+        result = validate_url("http://www.example.com/")
+        assert isinstance(result, basestring)
+
+    def it_rejects_no_scheme():
+        with raises(ValidationError) as excinfo:
+            validate_url("www.example.com/test")
+        assert excinfo.value.code == INVALID_URL
+
+    def it_rejects_no_host():
+        with raises(ValidationError) as excinfo:
+            validate_url("http:///test")
+        assert excinfo.value.code == INVALID_URL
+        assert validate_url("file:///test") == "file:///test"

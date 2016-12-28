@@ -10,6 +10,7 @@ from .validation import validate_choice
 from .validation import validate_directory
 from .validation import validate_file
 from .validation import validate_string
+from .validation import validate_url
 from .validation import ValidationError
 
 
@@ -29,6 +30,7 @@ NAME_INVALID = 'name-invalid'
 CONF_FILE_REQUIRED = 'conf-file-required'
 TYPE_REQUIRED = 'type-required'
 PYTHON_INVALID = 'python-invalid'
+CONDA_CHANNELS_INVALID = 'conda-channel-invalid'
 
 
 class ConfigError(Exception):
@@ -77,6 +79,7 @@ class BuildConfig(dict):
     PYTHON_INVALID_MESSAGE = '"python" section must be a mapping.'
     PYTHON_EXTRA_REQUIREMENTS_INVALID_MESSAGE = (
         '"python.extra_requirements" section must be a list.')
+    CONDA_CHANNELS_INVALID_MESSAGE = 'conda channels must be a list of anaconda.org channels.'
 
     def __init__(self, env_config, raw_config, source_file, source_position):
         self.env_config = env_config
@@ -288,6 +291,34 @@ class BuildConfig(dict):
                     base_path = os.path.dirname(self.source_file)
                     conda['file'] = validate_file(
                         raw_conda['file'], base_path)
+
+            if 'channels' in raw_conda:
+                channels = raw_conda["channels"]
+                with self.catch_validation_error('conda.channels'):
+                    if not isinstance(channels, (list, tuple)):
+                        self.error('conda.channels',
+                                   self.CONDA_CHANNELS_INVALID_MESSAGE,
+                                   code=CONDA_CHANNELS_INVALID)
+                    for c in channels:
+                        # While conda supports arbitrary URLs for channels,
+                        # it's a massive rabbit hole to try and chase down
+                        # the "proper" security stance for that. Let's make it
+                        # easier and only allow normal anaconda.org channels.
+                        try:
+                            validate_url(c)
+                        except ValidationError:
+                            # We want that one to fail.
+                            # Now let's check if the value is path-like.
+                            if c[0] in "./~":
+                                # Any of those characters will make conda
+                                # search the local file system, which is a no-go.
+                                self.error('conda.channels',
+                                           self.CONDA_CHANNELS_INVALID_MESSAGE,
+                                           code=CONDA_CHANNELS_INVALID)
+                        else:
+                            self.error('conda.channels',
+                                       self.CONDA_CHANNELS_INVALID_MESSAGE,
+                                       code=CONDA_CHANNELS_INVALID)
 
             self['conda'] = conda
 

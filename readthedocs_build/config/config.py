@@ -307,9 +307,11 @@ class BuildConfig(dict):
                         try:
                             validate_url(c)
                         except ValidationError:
-                            if c[0] == "/":
-                                # Leading slashes will be interpreted as paths
-                                # by conda
+                            # We want that one to fail.
+                            # Now let's check if the value is path-like.
+                            if c[0] in "./~":
+                                # Any of those characters will make conda
+                                # search the local file system, which is a no-go.
                                 self.error('conda.channels',
                                            self.CONDA_CHANNELS_INVALID_MESSAGE,
                                            code=CONDA_CHANNELS_INVALID)

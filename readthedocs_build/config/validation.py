@@ -1,4 +1,5 @@
 import os
+import urlparse
 
 
 INVALID_BOOL = 'invalid-bool'
@@ -7,6 +8,7 @@ INVALID_DIRECTORY = 'invalid-directory'
 INVALID_FILE = 'invalid-file'
 INVALID_PATH = 'invalid-path'
 INVALID_STRING = 'invalid-string'
+INVALID_URL = 'invalid-url'
 
 
 class ValidationError(Exception):
@@ -17,6 +19,7 @@ class ValidationError(Exception):
         INVALID_FILE: '{value} is not a file',
         INVALID_PATH: 'path {value} does not exist',
         INVALID_STRING: 'expected string',
+        INVALID_URL: 'expected URL, received {value}',
     }
 
     def __init__(self, value, code, format_kwargs=None):
@@ -72,3 +75,13 @@ def validate_string(value):
     if not isinstance(value, basestring):
         raise ValidationError(value, INVALID_STRING)
     return unicode(value)
+
+
+def validate_url(value):
+    string_value = validate_string(value)
+    parsed = urlparse.urlparse(string_value)
+    if not parsed.scheme:
+        raise ValidationError(value, INVALID_URL)
+    if not parsed.netloc:
+        raise ValidationError(value, INVALID_URL)
+    return string_value

@@ -13,6 +13,7 @@ from .config import TYPE_REQUIRED
 from .config import NAME_REQUIRED
 from .config import NAME_INVALID
 from .config import PYTHON_INVALID
+from .config import CONDA_CHANNELS_INVALID
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
 from .validation import INVALID_DIRECTORY
@@ -423,3 +424,92 @@ def test_project_set_output_base():
     for build_config in project:
         assert (
             build_config['output_base'] == os.path.join(os.getcwd(), 'random'))
+
+
+def describe_validate_conda():
+
+    def it_rejects_nonexistant_condafiles(tmpdir):
+        apply_fs(tmpdir, minimal_config_dir)
+        source_path = os.path.join(str(tmpdir), "readthedocs.yml")
+        conda_config = {"file": "environment.yml"}
+        build = BuildConfig({},
+                            {"conda": conda_config},
+                            source_path,
+                            1)
+        raised = False
+        try:
+            build.validate_conda()
+        except InvalidConfig as e:
+            raised = e
+
+        assert raised is not False
+
+    def it_accepts_real_condafiles(tmpdir):
+        fs = {'environment.txt': 'numpy=1.9'}
+        fs.update(minimal_config_dir)
+        apply_fs(tmpdir, fs)
+        source_path = os.path.join(str(tmpdir), "readthedocs.yml")
+        conda_config = {"file": "environment.txt"}
+        build = BuildConfig({},
+                            {"conda": conda_config},
+                            source_path,
+                            0)
+        build.validate_conda()
+
+    def it_rejects_url_channels(tmpdir):
+        fs = {'environment.txt': 'numpy=1.9'}
+        fs.update(minimal_config_dir)
+        apply_fs(tmpdir, fs)
+        source_path = os.path.join(str(tmpdir), "readthedocs.yml")
+        bad_paths = [
+            "file:///test/path",
+            "https://test.anaconda.org/test"
+        ]
+        for p in bad_paths:
+            conda_config = {"channels": [p]}
+            build = BuildConfig({},
+                                {"conda": conda_config},
+                                source_path,
+                                0)
+            raised = False
+            try:
+                build.validate_conda()
+            except InvalidConfig as e:
+                raised = e
+            assert raised is not False
+
+    def it_rejects_filesystem_channels(tmpdir):
+        fs = {'environment.txt': 'numpy=1.9'}
+        fs.update(minimal_config_dir)
+        apply_fs(tmpdir, fs)
+        source_path = os.path.join(str(tmpdir), "readthedocs.yml")
+        bad_paths = [
+            "/test/path",
+            "~/test/path",
+            "./test/path"
+        ]
+        for p in bad_paths:
+            conda_config = {"channels": [p]}
+            build = BuildConfig({},
+                                {"conda": conda_config},
+                                source_path,
+                                0)
+            raised = False
+            try:
+                build.validate_conda()
+            except InvalidConfig as e:
+                raised = e
+            assert raised is not False
+
+    def it_accepts_anaconda_channels(tmpdir):
+        fs = {'environment.txt': 'numpy=1.9'}
+        fs.update(minimal_config_dir)
+        apply_fs(tmpdir, fs)
+        source_path = os.path.join(str(tmpdir), "readthedocs.yml")
+        good_channel = "conda-forge"
+        conda_config = {"channels": [good_channel]}
+        build = BuildConfig({},
+                            {"conda": conda_config},
+                            source_path,
+                            0)
+        build.validate_conda()

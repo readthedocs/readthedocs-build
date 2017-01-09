@@ -78,6 +78,8 @@ class BuildConfig(dict):
     PYTHON_EXTRA_REQUIREMENTS_INVALID_MESSAGE = (
         '"python.extra_requirements" section must be a list.')
 
+    PYTHON_SUPPORTED_VERSIONS = [2, 2.7, 3, 3.3, 3.4, 3.5, 3.6]
+
     def __init__(self, env_config, raw_config, source_file, source_position):
         self.env_config = env_config
         self.raw_config = raw_config
@@ -112,14 +114,10 @@ class BuildConfig(dict):
             'sphinx',
         )
 
-    def get_valid_python_versions(self):
-        return (
-            2,
-            2.7,
-            3,
-            3.4,
-            3.5,
-        )
+    def get_valid_python_versions(self, supported_versions=None):
+        if supported_versions is not None:
+            return supported_versions
+        return self.PYTHON_SUPPORTED_VERSIONS
 
     def get_valid_formats(self):
         return (
@@ -266,8 +264,29 @@ class BuildConfig(dict):
 
             if 'version' in raw_python:
                 with self.catch_validation_error('python.version'):
+                    # Try to convert strings to an int first, to catch '2', then
+                    # a float, to catch '2.7'
+                    version = raw_python['version']
+                    if isinstance(version, str):
+                        try:
+                            version = int(version)
+                        except ValueError:
+                            try:
+                                version = float(version)
+                            except ValueError:
+                                pass
+                    # Get Python version support from the env_conf, as we will
+                    # pass this in based on the build image being used
+                    supported_versions = None
+                    try:
+                        supported_versions = self.env_config['python']['supported_versions']
+                    except (KeyError, TypeError):
+                        pass
                     python['version'] = validate_choice(
-                        raw_python['version'], self.get_valid_python_versions()
+                        version,
+                        self.get_valid_python_versions(
+                            supported_versions=supported_versions
+                        )
                     )
 
         self['python'] = python

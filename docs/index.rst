@@ -13,6 +13,7 @@ This is a fine set of docs
    :glob:
 
    steps
+   spec
 
 
 

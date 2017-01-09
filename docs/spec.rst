@@ -149,6 +149,19 @@ Following mapping keys are supported (all but the marked once are optional):
         The path in which ``python setup.py install`` will be executed.
         Defaults to the repository root.
 
+    ``version``
+        The Python interpreter version to use for all build calls. This value
+        should be a float or integer value.
+
+        Supported versions can be configured on config instantiation by passing
+        in the following to the `env_config`::
+
+            {
+                'python': {
+                    'supported_versions': [2, 2.7, 3, 3.5],
+                }
+            }
+
 ``language``
     The language the doc is written in. Defaults to empty string.
 

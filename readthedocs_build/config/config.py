@@ -114,9 +114,11 @@ class BuildConfig(dict):
             'sphinx',
         )
 
-    def get_valid_python_versions(self, supported_versions=None):
-        if supported_versions is not None:
-            return supported_versions
+    def get_valid_python_versions(self):
+        try:
+            return self.env_config['python']['supported_versions']
+        except (KeyError, TypeError):
+            pass
         return self.PYTHON_SUPPORTED_VERSIONS
 
     def get_valid_formats(self):
@@ -275,18 +277,9 @@ class BuildConfig(dict):
                                 version = float(version)
                             except ValueError:
                                 pass
-                    # Get Python version support from the env_conf, as we will
-                    # pass this in based on the build image being used
-                    supported_versions = None
-                    try:
-                        supported_versions = self.env_config['python']['supported_versions']
-                    except (KeyError, TypeError):
-                        pass
                     python['version'] = validate_choice(
                         version,
-                        self.get_valid_python_versions(
-                            supported_versions=supported_versions
-                        )
+                        self.get_valid_python_versions()
                     )
 
         self['python'] = python

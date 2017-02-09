@@ -1,4 +1,5 @@
 import os
+from six import string_types, text_type
 
 
 INVALID_BOOL = 'invalid-bool'
@@ -80,6 +81,6 @@ def validate_path(value, base_path):
 
 
 def validate_string(value):
-    if not isinstance(value, basestring):
+    if not isinstance(value, string_types):
         raise ValidationError(value, INVALID_STRING)
-    return unicode(value)
+    return text_type(value)

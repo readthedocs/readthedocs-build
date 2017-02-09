@@ -1,16 +1,14 @@
 language: python
 python:
   - 2.7
+  - 3.4
+  - 3.5
+  - 3.6
 sudo: false
-env:
-  - TOX_ENV=py27-unittest
-  - TOX_ENV=py27-integration
-  - TOX_ENV=lint
-  #- TOX_ENV=docs
 install:
-  - pip install tox
+  - pip install tox-travis
 script:
-  - tox -e $TOX_ENV
+  - tox
 notifications:
   slack:
     rooms:

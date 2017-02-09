@@ -295,7 +295,7 @@ class BuildConfig(dict):
 
     def validate_pdflatex(self):
         if 'pdflatex' not in self.raw_config:
-            self['pdflatex'] = validate_string('pdflatex')
+            self['pdflatex'] = 'pdflatex'
         else:
             with self.catch_validation_error('pdflatex'):
                 self['pdflatex'] = validate_string(self.raw_config['pdflatex'])

@@ -5,6 +5,7 @@ import os
 
 from .validation import validate_bool
 from .validation import validate_choice
+from .validation import validate_list
 from .validation import validate_directory
 from .validation import validate_file
 from .validation import validate_path
@@ -12,6 +13,7 @@ from .validation import validate_string
 from .validation import ValidationError
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
+from .validation import INVALID_LIST
 from .validation import INVALID_DIRECTORY
 from .validation import INVALID_FILE
 from .validation import INVALID_PATH
@@ -43,13 +45,39 @@ def describe_validate_choice():
         result = validate_choice('choice', ('choice', 'another_choice'))
         assert result is 'choice'
 
-        result = validate_choice('c', 'abc')
-        assert result is 'c'
+        with raises(ValidationError) as excinfo:
+            validate_choice('c', 'abc')
+        assert excinfo.value.code == INVALID_LIST
 
     def it_rejects_invalid_choice():
         with raises(ValidationError) as excinfo:
             validate_choice('not-a-choice', ('choice', 'another_choice'))
         assert excinfo.value.code == INVALID_CHOICE
+
+
+def describe_validate_list():
+
+    def it_accepts_list_types():
+        result = validate_list(['choice', 'another_choice'])
+        assert result == ['choice', 'another_choice']
+
+        result = validate_list(('choice', 'another_choice'))
+        assert result == ['choice', 'another_choice']
+
+        def iterator():
+            yield 'choice'
+
+        result = validate_list(iterator())
+        assert result == ['choice']
+
+        with raises(ValidationError) as excinfo:
+            validate_choice('c', 'abc')
+        assert excinfo.value.code == INVALID_LIST
+
+    def it_rejects_string_types():
+        with raises(ValidationError) as excinfo:
+            result = validate_list('choice')
+        assert excinfo.value.code == INVALID_LIST
 
 
 def describe_validate_directory():

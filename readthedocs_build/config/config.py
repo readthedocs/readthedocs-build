@@ -78,6 +78,8 @@ class BuildConfig(dict):
     PYTHON_EXTRA_REQUIREMENTS_INVALID_MESSAGE = (
         '"python.extra_requirements" section must be a list.')
 
+    PYTHON_SUPPORTED_VERSIONS = [2, 2.7, 3, 3.3, 3.4, 3.5, 3.6]
+
     def __init__(self, env_config, raw_config, source_file, source_position):
         self.env_config = env_config
         self.raw_config = raw_config
@@ -113,13 +115,11 @@ class BuildConfig(dict):
         )
 
     def get_valid_python_versions(self):
-        return (
-            2,
-            2.7,
-            3,
-            3.4,
-            3.5,
-        )
+        try:
+            return self.env_config['python']['supported_versions']
+        except (KeyError, TypeError):
+            pass
+        return self.PYTHON_SUPPORTED_VERSIONS
 
     def get_valid_formats(self):
         return (
@@ -266,8 +266,20 @@ class BuildConfig(dict):
 
             if 'version' in raw_python:
                 with self.catch_validation_error('python.version'):
+                    # Try to convert strings to an int first, to catch '2', then
+                    # a float, to catch '2.7'
+                    version = raw_python['version']
+                    if isinstance(version, str):
+                        try:
+                            version = int(version)
+                        except ValueError:
+                            try:
+                                version = float(version)
+                            except ValueError:
+                                pass
                     python['version'] = validate_choice(
-                        raw_python['version'], self.get_valid_python_versions()
+                        version,
+                        self.get_valid_python_versions()
                     )
 
         self['python'] = python

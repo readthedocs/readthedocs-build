@@ -17,7 +17,7 @@ setup(
     long_description=codecs.open("README.rst", "r", "utf-8").read(),
     install_requires=[
         "PyYAML>=3.0",
-        "Sphinx>=1.3",
+        "Sphinx>=1.5",
         "Docutils",
         "readthedocs-sphinx-ext",
         "recommonmark",

@@ -2,9 +2,11 @@
 from mock import patch
 from pytest import raises
 import os
+from six import text_type
 
 from .validation import validate_bool
 from .validation import validate_choice
+from .validation import validate_list
 from .validation import validate_directory
 from .validation import validate_file
 from .validation import validate_path
@@ -12,6 +14,7 @@ from .validation import validate_string
 from .validation import ValidationError
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
+from .validation import INVALID_LIST
 from .validation import INVALID_DIRECTORY
 from .validation import INVALID_FILE
 from .validation import INVALID_PATH
@@ -43,8 +46,9 @@ def describe_validate_choice():
         result = validate_choice('choice', ('choice', 'another_choice'))
         assert result is 'choice'
 
-        result = validate_choice('c', 'abc')
-        assert result is 'c'
+        with raises(ValidationError) as excinfo:
+            validate_choice('c', 'abc')
+        assert excinfo.value.code == INVALID_LIST
 
     def it_rejects_invalid_choice():
         with raises(ValidationError) as excinfo:
@@ -52,12 +56,37 @@ def describe_validate_choice():
         assert excinfo.value.code == INVALID_CHOICE
 
 
+def describe_validate_list():
+
+    def it_accepts_list_types():
+        result = validate_list(['choice', 'another_choice'])
+        assert result == ['choice', 'another_choice']
+
+        result = validate_list(('choice', 'another_choice'))
+        assert result == ['choice', 'another_choice']
+
+        def iterator():
+            yield 'choice'
+
+        result = validate_list(iterator())
+        assert result == ['choice']
+
+        with raises(ValidationError) as excinfo:
+            validate_choice('c', 'abc')
+        assert excinfo.value.code == INVALID_LIST
+
+    def it_rejects_string_types():
+        with raises(ValidationError) as excinfo:
+            result = validate_list('choice')
+        assert excinfo.value.code == INVALID_LIST
+
+
 def describe_validate_directory():
 
     def it_uses_validate_path(tmpdir):
         patcher = patch('readthedocs_build.config.validation.validate_path')
         with patcher as validate_path:
-            path = unicode(tmpdir.mkdir('a directory'))
+            path = text_type(tmpdir.mkdir('a directory'))
             validate_path.return_value = path
             validate_directory(path, str(tmpdir))
             validate_path.assert_called_with(path, str(tmpdir))
@@ -122,11 +151,11 @@ def describe_validate_string():
 
     def it_accepts_unicode():
         result = validate_string(u'Unicöde')
-        assert isinstance(result, unicode)
+        assert isinstance(result, text_type)
 
     def it_accepts_nonunicode():
         result = validate_string('Unicode')
-        assert isinstance(result, unicode)
+        assert isinstance(result, text_type)
 
     def it_rejects_float():
         with raises(ValidationError) as excinfo:

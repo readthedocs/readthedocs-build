@@ -1,8 +1,10 @@
 import os
+from six import string_types, text_type
 
 
 INVALID_BOOL = 'invalid-bool'
 INVALID_CHOICE = 'invalid-choice'
+INVALID_LIST = 'invalid-list'
 INVALID_DIRECTORY = 'invalid-directory'
 INVALID_FILE = 'invalid-file'
 INVALID_PATH = 'invalid-path'
@@ -17,6 +19,7 @@ class ValidationError(Exception):
         INVALID_FILE: '{value} is not a file',
         INVALID_PATH: 'path {value} does not exist',
         INVALID_STRING: 'expected string',
+        INVALID_LIST: 'expected list',
     }
 
     def __init__(self, value, code, format_kwargs=None):
@@ -31,10 +34,19 @@ class ValidationError(Exception):
         super(ValidationError, self).__init__(message)
 
 
+def validate_list(value):
+    if isinstance(value, str):
+        raise ValidationError(value, INVALID_LIST)
+    if not hasattr(value, '__iter__'):
+        raise ValidationError(value, INVALID_LIST)
+    return list(value)
+
+
 def validate_choice(value, choices):
+    choices = validate_list(choices)
     if value not in choices:
         raise ValidationError(value, INVALID_CHOICE, {
-            'choices': ', '.join(choices)
+            'choices': ', '.join(map(str, choices))
         })
     return value
 
@@ -69,6 +81,6 @@ def validate_path(value, base_path):
 
 
 def validate_string(value):
-    if not isinstance(value, basestring):
+    if not isinstance(value, string_types):
         raise ValidationError(value, INVALID_STRING)
-    return unicode(value)
+    return text_type(value)

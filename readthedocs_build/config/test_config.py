@@ -250,6 +250,59 @@ def describe_validate_setup_py_install():
         validate_bool.assert_any_call('to-validate')
 
 
+def describe_validate_python_version():
+
+    def it_defaults_to_a_valid_version():
+        build = get_build_config({'python': {}})
+        build.validate_python()
+        assert build['python']['version'] is 2
+
+    def it_supports_other_versions():
+        build = get_build_config({'python': {'version': 3.6}})
+        build.validate_python()
+        assert build['python']['version'] is 3.6
+
+    def it_validates_versions_out_of_range():
+        build = get_build_config({'python': {'version': 1.0}})
+        with raises(InvalidConfig) as excinfo:
+            build.validate_python()
+        assert excinfo.value.key == 'python.version'
+        assert excinfo.value.code == INVALID_CHOICE
+
+    def it_validates_wrong_type():
+        build = get_build_config({'python': {'version': 'this-is-string'}})
+        with raises(InvalidConfig) as excinfo:
+            build.validate_python()
+        assert excinfo.value.key == 'python.version'
+        assert excinfo.value.code == INVALID_CHOICE
+
+    def it_validates_wrong_type_right_value():
+        build = get_build_config({'python': {'version': '3.6'}})
+        build.validate_python()
+        assert build['python']['version'] == 3.6
+
+        build = get_build_config({'python': {'version': '3'}})
+        build.validate_python()
+        assert build['python']['version'] == 3
+
+    def it_validates_env_supported_versions():
+        build = get_build_config(
+            {'python': {'version': 3.6}},
+            env_config={'python': {'supported_versions': [3.5]}}
+        )
+        with raises(InvalidConfig) as excinfo:
+            build.validate_python()
+        assert excinfo.value.key == 'python.version'
+        assert excinfo.value.code == INVALID_CHOICE
+
+        build = get_build_config(
+            {'python': {'version': 3.6}},
+            env_config={'python': {'supported_versions': [3.5, 3.6]}}
+        )
+        build.validate_python()
+        assert build['python']['version'] == 3.6
+
+
 def describe_validate_formats():
 
     def it_defaults_to_not_being_included():

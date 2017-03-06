@@ -21,7 +21,11 @@ def test_it_respects_system_site_packages_flag():
     with patch('readthedocs_build.builder.virtualenv.run') as run:
         run.return_value = 0
 
-        venv = VirtualEnv(system_site_packages=True)
+        python_config = {
+            'use_system_site_packages': True,
+        }
+
+        venv = VirtualEnv(python_config)
         assert venv.system_site_packages
         run.assert_called_with([
             'virtualenv',

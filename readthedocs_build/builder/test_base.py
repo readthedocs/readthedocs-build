@@ -77,7 +77,7 @@ def describe_setup_virtualenv():
         with patch('readthedocs_build.builder.base.VirtualEnv') as VirtualEnv:
             builder = BaseBuilder(build_config=build_config)
             builder.setup_virtualenv()
-            VirtualEnv.assert_called_with(system_site_packages=False)
+            VirtualEnv.assert_called_with(build_config['python'])
 
         build_config = get_config()
         build_config['python'].update({
@@ -86,7 +86,7 @@ def describe_setup_virtualenv():
         with patch('readthedocs_build.builder.base.VirtualEnv') as VirtualEnv:
             builder = BaseBuilder(build_config=build_config)
             builder.setup_virtualenv()
-            VirtualEnv.assert_called_with(system_site_packages=True)
+            VirtualEnv.assert_called_with(build_config['python'])
 
     def it_executes_setup_py_install(tmpdir):
         setup_py = str(tmpdir.join('setup.py'))

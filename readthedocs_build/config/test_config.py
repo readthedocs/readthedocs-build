@@ -204,6 +204,25 @@ def describe_validate_python_extra_requirements():
         validate_string.assert_any_call('tests')
 
 
+def describe_validate_pdflatex():
+    def it_defaults_to_pdflatex():
+        build = get_build_config({'python': {}})
+        build.validate_pdflatex()
+        assert build['pdflatex'] == 'pdflatex'
+
+    def it_validates_is_a_string():
+        build = get_build_config({'pdflatex': ['invalid']})
+        with raises(InvalidConfig) as excinfo:
+            build.validate_pdflatex()
+        assert excinfo.value.key == 'pdflatex'
+        assert excinfo.value.code == INVALID_STRING
+
+    def it_gets_set_correctly():
+        build = get_build_config({'pdflatex': 'xelatex'})
+        build.validate_pdflatex()
+        assert build['pdflatex'] == 'xelatex'
+
+
 def describe_validate_use_system_site_packages():
     def it_defaults_to_false():
         build = get_build_config({'python': {}})

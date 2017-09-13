@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 
 from .find import find_all
@@ -74,4 +76,24 @@ def test_find_multiple_files(tmpdir):
         str(tmpdir.join('first', '.readthedocs.yml')),
         str(tmpdir.join('first', 'readthedocs.yml')),
         str(tmpdir.join('third', 'readthedocs.yml')),
+    ]
+
+
+def test_find_unicode(tmpdir):
+    apply_fs(tmpdir, {
+        'first': {
+            'dir🦉': {
+                'readthedocs.yml': '',
+            },
+        },
+        'second': {
+            'file🦉.txt': 'content',
+        },
+    })
+
+    base = str(tmpdir)
+    paths = list(find_all(base, ('readthedocs.yml',
+                                 '.readthedocs.yml')))
+    assert paths == [
+        os.path.join(str(tmpdir), 'first', 'dir🦉', 'readthedocs.yml')
     ]

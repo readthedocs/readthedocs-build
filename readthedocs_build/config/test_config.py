@@ -179,6 +179,13 @@ def test_python_pip_install_default():
     assert build['python']['pip_install'] is False
 
 
+def test_python_process_dependency_links_default():
+    build = get_build_config({'python': {}})
+    build.validate_python()
+    # Default is False.
+    assert build['python']['process_dependency_links'] is False
+
+
 def describe_validate_python_extra_requirements():
 
     def it_defaults_to_list():

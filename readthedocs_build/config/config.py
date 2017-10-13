@@ -210,6 +210,7 @@ class BuildConfig(dict):
             'use_system_site_packages': False,
             'pip_install': False,
             'extra_requirements': [],
+            'process_dependency_links': False,
             'setup_py_install': False,
             'setup_py_path': os.path.join(
                 os.path.dirname(self.source_file),
@@ -237,6 +238,12 @@ class BuildConfig(dict):
                 with self.catch_validation_error('python.pip_install'):
                     python['pip_install'] = validate_bool(
                         raw_python['pip_install'])
+
+            # Validate process_dependency_links.
+            if 'process_dependency_links' in raw_python:
+                with self.catch_validation_error('python.process_dependency_links'):
+                    python['process_dependency_links'] = validate_bool(
+                        raw_python['process_dependency_links'])
 
             # Validate extra_requirements.
             if 'extra_requirements' in raw_python:

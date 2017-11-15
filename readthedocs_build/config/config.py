@@ -360,9 +360,9 @@ def load(path, env_config):
 
     """
 
-    config_files = list(find_one(path, CONFIG_FILENAMES))
+    filename = find_one(path, CONFIG_FILENAMES)
 
-    if not config_files:
+    if not filename:
         files = '{}'.format(', '.join(map(repr, CONFIG_FILENAMES[:-1])))
         if files:
             files += ' or '
@@ -370,23 +370,22 @@ def load(path, env_config):
         raise ConfigError('No files {} found'.format(files),
                           code=CONFIG_REQUIRED)
     build_configs = []
-    for filename in config_files:
-        with open(filename, 'r') as file:
-            try:
-                configs = parse(file.read())
-            except ParseError as error:
-                raise ConfigError(
-                    'Parse error in {filename}: {message}'.format(
-                        filename=filename,
-                        message=str(error)),
-                    code=CONFIG_SYNTAX_INVALID)
-            for i, config in enumerate(configs):
-                build_config = BuildConfig(
-                    env_config,
-                    config,
-                    source_file=filename,
-                    source_position=i)
-                build_configs.append(build_config)
+    with open(filename, 'r') as file:
+        try:
+            configs = parse(file.read())
+        except ParseError as error:
+            raise ConfigError(
+                'Parse error in {filename}: {message}'.format(
+                    filename=filename,
+                    message=str(error)),
+                code=CONFIG_SYNTAX_INVALID)
+        for i, config in enumerate(configs):
+            build_config = BuildConfig(
+                env_config,
+                config,
+                source_file=filename,
+                source_position=i)
+            build_configs.append(build_config)
 
     project_config = ProjectConfig(build_configs)
     project_config.validate()

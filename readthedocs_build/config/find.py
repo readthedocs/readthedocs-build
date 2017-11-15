@@ -11,7 +11,7 @@ def find_all(path, filenames):
 
 
 def find_one(path, filenames):
-    paths = find_all(path, filenames)
+    paths = list(find_all(path, filenames))
     if paths:
         return paths[0]
     return ''

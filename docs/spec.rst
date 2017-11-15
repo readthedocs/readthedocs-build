@@ -47,26 +47,10 @@ A few complete examples:
     python:
         setup_install: true
 
+
 - A project with multiple documentations. The on in ``docs/`` is the english
   one and considered the main documentation. ``docs-de/`` contains a second
   documentation which is the german translation of ``docs/``.
-
-  .. code-block:: yaml
-
-    # in /docs/readthedocs.yml
-    type: sphinx
-    language: en
-    python:
-        requirements:
-            - "-r../requirements.txt"
-        setup_install: true
-
-    # in /docs-de/readthedocs.yml
-    extend: docs/readthedocs.yml
-    language: de
-
-- The same as the previous example but with everything configured in one
-  ``readthedocs.yml`` in the root of the project:
 
   .. code-block:: yaml
 
@@ -86,10 +70,6 @@ A few complete examples:
 
 
 Following mapping keys are supported (all but the marked once are optional):
-
-``extend``
-    References the name of another configuration. All mapping keys are
-    inherited, except for ``name`` and ``base``.
 
 ``name``
     An identifier of the documentation that this config is about. It might

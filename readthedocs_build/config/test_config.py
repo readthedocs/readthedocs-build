@@ -95,16 +95,12 @@ def test_build_config_has_source_file(tmpdir):
 def test_build_config_has_source_position(tmpdir):
     base = str(apply_fs(tmpdir, multiple_config_dir))
     builds = load(base, env_config)
-    assert len(builds) == 3
+    assert len(builds) == 2
     first, second = filter(
         lambda b: not b.source_file.endswith('nested/readthedocs.yml'),
         builds)
-    third, = filter(
-        lambda b: b.source_file.endswith('nested/readthedocs.yml'),
-        builds)
     assert first.source_position == 0
     assert second.source_position == 1
-    assert third.source_position == 0
 
 
 def test_config_requires_name():

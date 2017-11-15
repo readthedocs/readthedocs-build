@@ -353,11 +353,10 @@ class ProjectConfig(list):
 
 def load(path, env_config):
     """
-    Load a project configuration and all the contained build configs for a
-    given path. That is usually the root of the project.
+    Load a project configuration and the top-most build config for a
+    given path. That is usually the root of the project, but will look deeper.
 
     The config will be validated.
-
     """
 
     filename = find_one(path, CONFIG_FILENAMES)

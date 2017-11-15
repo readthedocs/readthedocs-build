@@ -116,18 +116,18 @@ Following mapping keys are supported (all but the marked once are optional):
         path/to/requirements.txt``. Accepts version modifiers like
         ``setuptools>=18.0``.
 
+    ``pip_install``
+        If ``true``, ``pip install .`` will be executed before building the
+        docs. Mutually exclusive with ``setup_install``.
+
     ``extra_requirements``
-        A list of `extra requirements`_ sections to install, additionnaly to
-        the `package default dependencies`_. Ignored if the ``setup_install``
-        option below is ``true``.
+        A list of `extra requirements`_ sections to install in addition to
+        the `package default dependencies`_. Only used if the ``pip_install``
+        option above is ``true``.
 
     ``setup_install``
         If ``true``, then ``python setup.py install`` will be executed before
-        building the docs.
-
-    ``setup_path``
-        The path in which ``python setup.py install`` will be executed.
-        Defaults to the repository root.
+        building the docs. Mutually exclusive with ``pip_install``.
 
     ``version``
         The Python interpreter version to use for all build calls. This value

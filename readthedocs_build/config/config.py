@@ -2,7 +2,7 @@ from contextlib import contextmanager
 import re
 import os
 
-from .find import find_all
+from .find import find_one
 from .parser import ParseError
 from .parser import parse
 from .validation import validate_bool
@@ -351,20 +351,16 @@ class ProjectConfig(list):
             build['output_base'] = os.path.abspath(directory)
 
 
-def load(path, env_config, only=False):
+def load(path, env_config):
     """
     Load a project configuration and all the contained build configs for a
     given path. That is usually the root of the project.
 
     The config will be validated.
 
-    `only` means not to search for config files, but use the one passed in
     """
 
-    if only:
-        config_files = [path]
-    else:
-        config_files = list(find_all(path, CONFIG_FILENAMES))
+    config_files = list(find_one(path, CONFIG_FILENAMES))
 
     if not config_files:
         files = '{}'.format(', '.join(map(repr, CONFIG_FILENAMES[:-1])))

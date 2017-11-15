@@ -351,15 +351,21 @@ class ProjectConfig(list):
             build['output_base'] = os.path.abspath(directory)
 
 
-def load(path, env_config):
+def load(path, env_config, only=False):
     """
     Load a project configuration and all the contained build configs for a
     given path. That is usually the root of the project.
 
     The config will be validated.
+
+    `only` means not to search for config files, but use the one passed in
     """
 
-    config_files = list(find_all(path, CONFIG_FILENAMES))
+    if only:
+        config_files = [path]
+    else:
+        config_files = list(find_all(path, CONFIG_FILENAMES))
+
     if not config_files:
         files = '{}'.format(', '.join(map(repr, CONFIG_FILENAMES[:-1])))
         if files:

@@ -8,3 +8,9 @@ def find_all(path, filenames):
         for filename in filenames:
             if filename in files:
                 yield os.path.abspath(os.path.join(root, filename))
+
+
+def find_one(path, filenames):
+    for _path in find_all(path, filenames):
+        return _path
+    return ''

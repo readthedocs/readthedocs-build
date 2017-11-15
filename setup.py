@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name='readthedocs-build',
-    version='2.0.6',
+    version='2.0.7',
     author='Eric Holscher',
     author_email='eric@ericholscher.com',
     url='https://readthedocs.org',
@@ -17,7 +17,7 @@ setup(
     long_description=codecs.open("README.rst", "r", "utf-8").read(),
     install_requires=[
         "PyYAML>=3.0",
-        "Sphinx>=1.5",
+        "Sphinx>=1.5.2",
         "Docutils",
         "readthedocs-sphinx-ext",
         "recommonmark",

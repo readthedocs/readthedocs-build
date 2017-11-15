@@ -12,7 +12,7 @@ class SphinxBuilder(BaseBuilder):
     """
 
     python_dependencies = BaseBuilder.python_dependencies + (
-        'Sphinx==1.5.1',
+        'Sphinx>=1.5.2',
     )
 
     def _run_sphinx_build(self, format, out_dir):

@@ -11,9 +11,7 @@ def find_all(path, filenames):
 
 
 def find_one(path, filenames):
-    path = os.path.abspath(path)
-    for root, dirs, files in os.walk(path, topdown=True):
-        dirs.sort()
-        for filename in filenames:
-            if filename in files:
-                return os.path.abspath(os.path.join(root, filename))
+    paths = find_all(path, filenames)
+    if paths:
+        return paths[0]
+    return ''

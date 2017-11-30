@@ -224,9 +224,8 @@ class BuildConfig(dict):
         self['build'] = build
 
         # Set the valid python versions for this container
-
-        self.PYTHON_SUPPORTED_VERSIONS = \
-            DOCKER_BUILD_IMAGES[build['image']]['python']['supported_versions']
+        img = build['image']
+        self.PYTHON_SUPPORTED_VERSIONS = DOCKER_BUILD_IMAGES[img]['python']['supported_versions']
 
     def validate_python(self):
         python = {

@@ -79,6 +79,7 @@ class BuildConfig(dict):
         '"python.extra_requirements" section must be a list.')
 
     PYTHON_SUPPORTED_VERSIONS = [2, 2.7, 3, 3.3, 3.4, 3.5, 3.6]
+    DOCKER_SUPPORTED_VERSIONS = ['1.0', '2.0', 'latest']
 
     def __init__(self, env_config, raw_config, source_file, source_position):
         self.env_config = env_config
@@ -204,6 +205,19 @@ class BuildConfig(dict):
             base_path = os.path.dirname(self.source_file)
             base = validate_directory(base, base_path)
         self['base'] = base
+
+    def validate_docker(self):
+        # Defaults
+        docker = {'image': '2.0'}
+        if 'docker' in self.raw_config:
+            _docker = self.raw_config['docker']
+            if 'image' in _docker:
+                with self.catch_validation_error('docker'):
+                    docker['image'] = validate_choice(
+                        str(_docker['image']),
+                        self.DOCKER_SUPPORTED_VERSIONS,
+                    )
+        self['docker'] = docker
 
     def validate_python(self):
         python = {

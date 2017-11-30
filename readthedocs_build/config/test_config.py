@@ -413,6 +413,41 @@ def describe_validate_base():
         assert excinfo.value.code == INVALID_PATH
 
 
+def describe_validate_docker():
+
+    def it_fails_if_docker_is_invalid_option(tmpdir):
+        apply_fs(tmpdir, minimal_config)
+        build = BuildConfig(
+            {},
+            {'docker': {'image': 3.0}},
+            source_file=str(tmpdir.join('readthedocs.yml')),
+            source_position=0)
+        with raises(InvalidConfig) as excinfo:
+            build.validate_docker()
+        assert excinfo.value.key == 'docker'
+        assert excinfo.value.code == INVALID_CHOICE
+
+    def it_works(tmpdir):
+        apply_fs(tmpdir, minimal_config)
+        build = BuildConfig(
+            {},
+            {'docker': {'image': 'latest'}},
+            source_file=str(tmpdir.join('readthedocs.yml')),
+            source_position=0)
+        build.validate_docker()
+        assert build['docker']['image'] == 'latest'
+
+    def default(tmpdir):
+        apply_fs(tmpdir, minimal_config)
+        build = BuildConfig(
+            {},
+            {},
+            source_file=str(tmpdir.join('readthedocs.yml')),
+            source_position=0)
+        build.validate_docker()
+        assert build['docker']['image'] == '2.0'
+
+
 def test_build_validate_calls_all_subvalidators(tmpdir):
     apply_fs(tmpdir, minimal_config)
     build = BuildConfig(

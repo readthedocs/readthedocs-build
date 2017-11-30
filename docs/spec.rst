@@ -105,6 +105,12 @@ Following mapping keys are supported (all but the marked once are optional):
     - ``pdf``, default: ``false``
     - ``epub``, default: ``false``
 
+``docker``
+  Options for setting the docker configuration.
+
+    ``image``
+    This sets the docker image to use on the build, as defined `here <https://github.com/rtfd/readthedocs-docker-images/blob/master/CONTRIBUTING.rst#releases>`_.
+
 ``python``
     Python specific configuration. All builds are executed inside a
     virtualenv. This config can customize the virtualenv before running the

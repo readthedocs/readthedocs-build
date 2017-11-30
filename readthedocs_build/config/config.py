@@ -5,12 +5,8 @@ import os
 from .find import find_one
 from .parser import ParseError
 from .parser import parse
-from .validation import validate_bool
-from .validation import validate_choice
-from .validation import validate_directory
-from .validation import validate_file
-from .validation import validate_string
-from .validation import ValidationError
+from .validation import (validate_bool, validate_choice, validate_directory,
+                         validate_file, validate_string, ValidationError)
 
 
 __all__ = (
@@ -29,6 +25,18 @@ NAME_INVALID = 'name-invalid'
 CONF_FILE_REQUIRED = 'conf-file-required'
 TYPE_REQUIRED = 'type-required'
 PYTHON_INVALID = 'python-invalid'
+
+DOCKER_BUILD_IMAGES = {
+    '1.0': {
+        'python': {'supported_versions': [2, 2.7, 3, 3.4]},
+    },
+    '2.0': {
+        'python': {'supported_versions': [2, 2.7, 3, 3.5]},
+    },
+    'latest': {
+        'python': {'supported_versions': [2, 2.7, 3, 3.3, 3.4, 3.5, 3.6]},
+    },
+}
 
 
 class ConfigError(Exception):
@@ -116,13 +124,6 @@ class BuildConfig(dict):
             'sphinx',
         )
 
-    def get_valid_python_versions(self):
-        try:
-            return self.env_config['python']['supported_versions']
-        except (KeyError, TypeError):
-            pass
-        return self.PYTHON_SUPPORTED_VERSIONS
-
     def get_valid_formats(self):
         return (
             'none',
@@ -145,6 +146,9 @@ class BuildConfig(dict):
 
         # Validate env_config.
         self.validate_output_base()
+
+        # Validate the build environment first
+        self.validate_build()  # Must happen before `validate_python`!
 
         # Validate raw_config. Order matters.
         self.validate_name()
@@ -206,18 +210,23 @@ class BuildConfig(dict):
             base = validate_directory(base, base_path)
         self['base'] = base
 
-    def validate_docker(self):
+    def validate_build(self):
         # Defaults
-        docker = {'image': '2.0'}
-        if 'docker' in self.raw_config:
-            _docker = self.raw_config['docker']
-            if 'image' in _docker:
-                with self.catch_validation_error('docker'):
-                    docker['image'] = validate_choice(
-                        str(_docker['image']),
+        build = {'image': '2.0'}
+        if 'build' in self.raw_config:
+            _build = self.raw_config['build']
+            if 'image' in _build:
+                with self.catch_validation_error('build'):
+                    build['image'] = validate_choice(
+                        str(_build['image']),
                         self.DOCKER_SUPPORTED_VERSIONS,
                     )
-        self['docker'] = docker
+        self['build'] = build
+
+        # Set the valid python versions for this container
+
+        self.PYTHON_SUPPORTED_VERSIONS = \
+            DOCKER_BUILD_IMAGES[build['image']]['python']['supported_versions']
 
     def validate_python(self):
         python = {
@@ -294,7 +303,7 @@ class BuildConfig(dict):
                                 pass
                     python['version'] = validate_choice(
                         version,
-                        self.get_valid_python_versions()
+                        self.PYTHON_SUPPORTED_VERSIONS
                     )
 
         self['python'] = python

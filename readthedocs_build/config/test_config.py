@@ -281,23 +281,6 @@ def describe_validate_python_version():
         build.validate_python()
         assert build['python']['version'] == 3
 
-    def it_validates_env_supported_versions():
-        build = get_build_config(
-            {'python': {'version': 3.6}},
-            env_config={'python': {'supported_versions': [3.5]}}
-        )
-        with raises(InvalidConfig) as excinfo:
-            build.validate_python()
-        assert excinfo.value.key == 'python.version'
-        assert excinfo.value.code == INVALID_CHOICE
-
-        build = get_build_config(
-            {'python': {'version': 3.6}},
-            env_config={'python': {'supported_versions': [3.5, 3.6]}}
-        )
-        build.validate_python()
-        assert build['python']['version'] == 3.6
-
 
 def describe_validate_formats():
 
@@ -413,29 +396,58 @@ def describe_validate_base():
         assert excinfo.value.code == INVALID_PATH
 
 
-def describe_validate_docker():
+def describe_validate_build():
 
-    def it_fails_if_docker_is_invalid_option(tmpdir):
+    def it_fails_if_build_is_invalid_option(tmpdir):
         apply_fs(tmpdir, minimal_config)
         build = BuildConfig(
             {},
-            {'docker': {'image': 3.0}},
+            {'build': {'image': 3.0}},
             source_file=str(tmpdir.join('readthedocs.yml')),
             source_position=0)
         with raises(InvalidConfig) as excinfo:
-            build.validate_docker()
-        assert excinfo.value.key == 'docker'
+            build.validate_build()
+        assert excinfo.value.key == 'build'
         assert excinfo.value.code == INVALID_CHOICE
+
+    def it_fails_on_python_validation(tmpdir):
+        apply_fs(tmpdir, minimal_config)
+        build = BuildConfig(
+            {},
+            {
+                'build': {'image': 1.0},
+                'python': {'version': '3.3'},
+            },
+            source_file=str(tmpdir.join('readthedocs.yml')),
+            source_position=0)
+        build.validate_build()
+        with raises(InvalidConfig) as excinfo:
+            build.validate_python()
+        assert excinfo.value.key == 'python.version'
+        assert excinfo.value.code == INVALID_CHOICE
+
+    def it_works_on_python_validation(tmpdir):
+        apply_fs(tmpdir, minimal_config)
+        build = BuildConfig(
+            {},
+            {
+                'build': {'image': 'latest'},
+                'python': {'version': '3.3'},
+            },
+            source_file=str(tmpdir.join('readthedocs.yml')),
+            source_position=0)
+        build.validate_build()
+        build.validate_python()
 
     def it_works(tmpdir):
         apply_fs(tmpdir, minimal_config)
         build = BuildConfig(
             {},
-            {'docker': {'image': 'latest'}},
+            {'build': {'image': 'latest'}},
             source_file=str(tmpdir.join('readthedocs.yml')),
             source_position=0)
-        build.validate_docker()
-        assert build['docker']['image'] == 'latest'
+        build.validate_build()
+        assert build['build']['image'] == 'latest'
 
     def default(tmpdir):
         apply_fs(tmpdir, minimal_config)
@@ -444,8 +456,8 @@ def describe_validate_docker():
             {},
             source_file=str(tmpdir.join('readthedocs.yml')),
             source_position=0)
-        build.validate_docker()
-        assert build['docker']['image'] == '2.0'
+        build.validate_build()
+        assert build['build']['image'] == '2.0'
 
 
 def test_build_validate_calls_all_subvalidators(tmpdir):

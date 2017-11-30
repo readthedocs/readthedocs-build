@@ -105,7 +105,7 @@ Following mapping keys are supported (all but the marked once are optional):
     - ``pdf``, default: ``false``
     - ``epub``, default: ``false``
 
-``docker``
+``build``
   Options for setting the docker configuration.
 
     ``image``

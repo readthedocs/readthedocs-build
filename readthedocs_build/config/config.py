@@ -125,6 +125,13 @@ class BuildConfig(dict):
             'sphinx',
         )
 
+    def get_valid_python_versions(self):
+        try:
+            return self.env_config['python']['supported_versions']
+        except (KeyError, TypeError):
+            pass
+        return self.PYTHON_SUPPORTED_VERSIONS
+
     def get_valid_formats(self):
         return (
             'none',
@@ -132,13 +139,6 @@ class BuildConfig(dict):
             'pdf',
             'epub',
         )
-
-    def get_valid_python_versions(self):
-        try:
-            return self.env_config['python']['supported_versions']
-        except (KeyError, TypeError):
-            pass
-        return self.PYTHON_SUPPORTED_VERSIONS
 
     def validate(self):
         """

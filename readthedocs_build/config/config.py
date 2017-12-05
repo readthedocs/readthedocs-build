@@ -26,14 +26,15 @@ CONF_FILE_REQUIRED = 'conf-file-required'
 TYPE_REQUIRED = 'type-required'
 PYTHON_INVALID = 'python-invalid'
 
-DOCKER_BUILD_IMAGES = {
-    '1.0': {
+DOCKER_IMAGE = 'readthedocs/build:2.0'
+DOCKER_IMAGE_SETTINGS = {
+    'readthedocs/build:1.0': {
         'python': {'supported_versions': [2, 2.7, 3, 3.4]},
     },
-    '2.0': {
+    'readthedocs/build:2.0': {
         'python': {'supported_versions': [2, 2.7, 3, 3.5]},
     },
-    'latest': {
+    'readthedocs/build:latest': {
         'python': {'supported_versions': [2, 2.7, 3, 3.3, 3.4, 3.5, 3.6]},
     },
 }
@@ -219,7 +220,14 @@ class BuildConfig(dict):
 
     def validate_build(self):
         # Defaults
-        build = {'image': '2.0'}
+        if 'build' in self.env_config:
+            build = self.env_config['build']
+        else:
+            build = {'image': DOCKER_IMAGE}
+
+        default_image = build['image']
+
+        # User specified
         if 'build' in self.raw_config:
             _build = self.raw_config['build']
             if 'image' in _build:
@@ -228,10 +236,17 @@ class BuildConfig(dict):
                         str(_build['image']),
                         self.DOCKER_SUPPORTED_VERSIONS,
                     )
-            build['supported_python_versions'] = \
-                DOCKER_BUILD_IMAGES[build['image']]['python']['supported_versions']
+            if ':' not in build['image']:
+                # Prepend proper image name to user's image name
+                build['image'] = '{}:{}'.format(
+                    default_image.split(':')[0],
+                    build['image']
+                )
+            if build['image'] in DOCKER_IMAGE_SETTINGS:
+                self.env_config.update(
+                    DOCKER_IMAGE_SETTINGS[build['image']]
+                )
         self['build'] = build
-
 
     def validate_python(self):
         python = {
@@ -308,7 +323,7 @@ class BuildConfig(dict):
                                 pass
                     python['version'] = validate_choice(
                         version,
-                        self.PYTHON_SUPPORTED_VERSIONS
+                        self.get_valid_python_versions(),
                     )
 
         self['python'] = python

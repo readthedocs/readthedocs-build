@@ -28,6 +28,8 @@ PYTHON_INVALID = 'python-invalid'
 
 DOCKER_DEFAULT_IMAGE = 'readthedocs/build'
 DOCKER_DEFAULT_VERSION = '2.0'
+# These map to coordisponding settings in the .org,
+# so they haven't been renamed.
 DOCKER_IMAGE = '{}:{}'.format(DOCKER_DEFAULT_IMAGE, DOCKER_DEFAULT_VERSION)
 DOCKER_IMAGE_SETTINGS = {
     'readthedocs/build:1.0': {
@@ -232,6 +234,9 @@ class BuildConfig(dict):
         * Then append the default _image_, since users can't change this
         * Then update the env_config with the settings for that specific image
            - This is currently used for a build image -> python version mapping
+
+        This means we can use custom docker _images_,
+        but can't change the supported _versions_ that users have defined.
         """
         # Defaults
         if 'build' in self.env_config:

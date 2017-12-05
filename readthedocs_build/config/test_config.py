@@ -281,6 +281,23 @@ def describe_validate_python_version():
         build.validate_python()
         assert build['python']['version'] == 3
 
+    def it_validates_env_supported_versions():
+        build = get_build_config(
+            {'python': {'version': 3.6}},
+            env_config={'python': {'supported_versions': [3.5]}}
+        )
+        with raises(InvalidConfig) as excinfo:
+            build.validate_python()
+        assert excinfo.value.key == 'python.version'
+        assert excinfo.value.code == INVALID_CHOICE
+
+        build = get_build_config(
+            {'python': {'version': 3.6}},
+            env_config={'python': {'supported_versions': [3.5, 3.6]}}
+        )
+        build.validate_python()
+        assert build['python']['version'] == 3.6
+
 
 def describe_validate_formats():
 

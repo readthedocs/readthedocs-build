@@ -26,7 +26,9 @@ CONF_FILE_REQUIRED = 'conf-file-required'
 TYPE_REQUIRED = 'type-required'
 PYTHON_INVALID = 'python-invalid'
 
-DOCKER_IMAGE = 'readthedocs/build:2.0'
+DOCKER_DEFAULT_IMAGE = 'readthedocs/build'
+DOCKER_DEFAULT_VERSION = '2.0'
+DOCKER_IMAGE = '{}:{}'.format(DOCKER_DEFAULT_IMAGE, DOCKER_DEFAULT_VERSION)
 DOCKER_IMAGE_SETTINGS = {
     'readthedocs/build:1.0': {
         'python': {'supported_versions': [2, 2.7, 3, 3.4]},
@@ -219,13 +221,23 @@ class BuildConfig(dict):
         self['base'] = base
 
     def validate_build(self):
+        """
+        Validate the build config settings.
+
+        This is a bit complex,
+        so here is the logic:
+
+        * We take the default image & version if it's specific in the environment
+        * Then update the _version_ from the users config
+        * Then append the default _image_, since users can't change this
+        * Then update the env_config with the settings for that specific image
+           - This is currently used for a build image -> python version mapping
+        """
         # Defaults
         if 'build' in self.env_config:
             build = self.env_config['build']
         else:
             build = {'image': DOCKER_IMAGE}
-
-        default_image = build['image']
 
         # User specified
         if 'build' in self.raw_config:
@@ -239,7 +251,7 @@ class BuildConfig(dict):
             if ':' not in build['image']:
                 # Prepend proper image name to user's image name
                 build['image'] = '{}:{}'.format(
-                    default_image.split(':')[0],
+                    DOCKER_DEFAULT_IMAGE,
                     build['image']
                 )
             if build['image'] in DOCKER_IMAGE_SETTINGS:

@@ -259,11 +259,11 @@ class BuildConfig(dict):
                     DOCKER_DEFAULT_IMAGE,
                     build['image']
                 )
-            if build['image'] in DOCKER_IMAGE_SETTINGS:
-                # Update docker settings from image name
-                self.env_config.update(
-                    DOCKER_IMAGE_SETTINGS[build['image']]
-                )
+        if build['image'] in DOCKER_IMAGE_SETTINGS:
+            # Update docker settings from image name
+            self.env_config.update(
+                DOCKER_IMAGE_SETTINGS[build['image']]
+            )
         self['build'] = build
 
     def validate_python(self):

@@ -132,6 +132,13 @@ class BuildConfig(dict):
             'epub',
         )
 
+    def get_valid_python_versions(self):
+        try:
+            return self.env_config['python']['supported_versions']
+        except (KeyError, TypeError):
+            pass
+        return self.PYTHON_SUPPORTED_VERSIONS
+
     def validate(self):
         """
         Validate and process config into ``config`` attribute that contains the
@@ -221,11 +228,10 @@ class BuildConfig(dict):
                         str(_build['image']),
                         self.DOCKER_SUPPORTED_VERSIONS,
                     )
+            build['supported_python_versions'] = \
+                DOCKER_BUILD_IMAGES[build['image']]['python']['supported_versions']
         self['build'] = build
 
-        # Set the valid python versions for this container
-        img = build['image']
-        self.PYTHON_SUPPORTED_VERSIONS = DOCKER_BUILD_IMAGES[img]['python']['supported_versions']
 
     def validate_python(self):
         python = {

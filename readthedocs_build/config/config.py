@@ -259,10 +259,16 @@ class BuildConfig(dict):
                     DOCKER_DEFAULT_IMAGE,
                     build['image']
                 )
+        # Update docker default settings from image name
         if build['image'] in DOCKER_IMAGE_SETTINGS:
-            # Update docker settings from image name
             self.env_config.update(
                 DOCKER_IMAGE_SETTINGS[build['image']]
+            )
+        # Update docker settings from user config
+        if 'DOCKER_IMAGE_SETTINGS' in self.env_config and \
+                build['image'] in self.env_config['DOCKER_IMAGE_SETTINGS']:
+            self.env_config.update(
+                self.env_config['DOCKER_IMAGE_SETTINGS'][build['image']]
             )
         self['build'] = build
 

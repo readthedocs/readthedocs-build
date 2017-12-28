@@ -5,12 +5,8 @@ import os
 from .find import find_one
 from .parser import ParseError
 from .parser import parse
-from .validation import validate_bool
-from .validation import validate_choice
-from .validation import validate_directory
-from .validation import validate_file
-from .validation import validate_string
-from .validation import ValidationError
+from .validation import (validate_bool, validate_choice, validate_directory,
+                         validate_file, validate_string, ValidationError)
 
 
 __all__ = (
@@ -29,6 +25,23 @@ NAME_INVALID = 'name-invalid'
 CONF_FILE_REQUIRED = 'conf-file-required'
 TYPE_REQUIRED = 'type-required'
 PYTHON_INVALID = 'python-invalid'
+
+DOCKER_DEFAULT_IMAGE = 'readthedocs/build'
+DOCKER_DEFAULT_VERSION = '2.0'
+# These map to coordisponding settings in the .org,
+# so they haven't been renamed.
+DOCKER_IMAGE = '{}:{}'.format(DOCKER_DEFAULT_IMAGE, DOCKER_DEFAULT_VERSION)
+DOCKER_IMAGE_SETTINGS = {
+    'readthedocs/build:1.0': {
+        'python': {'supported_versions': [2, 2.7, 3, 3.4]},
+    },
+    'readthedocs/build:2.0': {
+        'python': {'supported_versions': [2, 2.7, 3, 3.5]},
+    },
+    'readthedocs/build:latest': {
+        'python': {'supported_versions': [2, 2.7, 3, 3.3, 3.4, 3.5, 3.6]},
+    },
+}
 
 
 class ConfigError(Exception):
@@ -79,6 +92,7 @@ class BuildConfig(dict):
         '"python.extra_requirements" section must be a list.')
 
     PYTHON_SUPPORTED_VERSIONS = [2, 2.7, 3, 3.3, 3.4, 3.5, 3.6]
+    DOCKER_SUPPORTED_VERSIONS = ['1.0', '2.0', 'latest']
 
     def __init__(self, env_config, raw_config, source_file, source_position):
         self.env_config = env_config
@@ -145,6 +159,9 @@ class BuildConfig(dict):
         # Validate env_config.
         self.validate_output_base()
 
+        # Validate the build environment first
+        self.validate_build()  # Must happen before `validate_python`!
+
         # Validate raw_config. Order matters.
         self.validate_name()
         self.validate_type()
@@ -204,6 +221,56 @@ class BuildConfig(dict):
             base_path = os.path.dirname(self.source_file)
             base = validate_directory(base, base_path)
         self['base'] = base
+
+    def validate_build(self):
+        """
+        Validate the build config settings.
+
+        This is a bit complex,
+        so here is the logic:
+
+        * We take the default image & version if it's specific in the environment
+        * Then update the _version_ from the users config
+        * Then append the default _image_, since users can't change this
+        * Then update the env_config with the settings for that specific image
+           - This is currently used for a build image -> python version mapping
+
+        This means we can use custom docker _images_,
+        but can't change the supported _versions_ that users have defined.
+        """
+        # Defaults
+        if 'build' in self.env_config:
+            build = self.env_config['build']
+        else:
+            build = {'image': DOCKER_IMAGE}
+
+        # User specified
+        if 'build' in self.raw_config:
+            _build = self.raw_config['build']
+            if 'image' in _build:
+                with self.catch_validation_error('build'):
+                    build['image'] = validate_choice(
+                        str(_build['image']),
+                        self.DOCKER_SUPPORTED_VERSIONS,
+                    )
+            if ':' not in build['image']:
+                # Prepend proper image name to user's image name
+                build['image'] = '{}:{}'.format(
+                    DOCKER_DEFAULT_IMAGE,
+                    build['image']
+                )
+        # Update docker default settings from image name
+        if build['image'] in DOCKER_IMAGE_SETTINGS:
+            self.env_config.update(
+                DOCKER_IMAGE_SETTINGS[build['image']]
+            )
+        # Update docker settings from user config
+        if 'DOCKER_IMAGE_SETTINGS' in self.env_config and \
+                build['image'] in self.env_config['DOCKER_IMAGE_SETTINGS']:
+            self.env_config.update(
+                self.env_config['DOCKER_IMAGE_SETTINGS'][build['image']]
+            )
+        self['build'] = build
 
     def validate_python(self):
         python = {
@@ -280,7 +347,7 @@ class BuildConfig(dict):
                                 pass
                     python['version'] = validate_choice(
                         version,
-                        self.get_valid_python_versions()
+                        self.get_valid_python_versions(),
                     )
 
         self['python'] = python

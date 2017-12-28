@@ -413,6 +413,70 @@ def describe_validate_base():
         assert excinfo.value.code == INVALID_PATH
 
 
+def describe_validate_build():
+
+    def it_fails_if_build_is_invalid_option(tmpdir):
+        apply_fs(tmpdir, minimal_config)
+        build = BuildConfig(
+            {},
+            {'build': {'image': 3.0}},
+            source_file=str(tmpdir.join('readthedocs.yml')),
+            source_position=0)
+        with raises(InvalidConfig) as excinfo:
+            build.validate_build()
+        assert excinfo.value.key == 'build'
+        assert excinfo.value.code == INVALID_CHOICE
+
+    def it_fails_on_python_validation(tmpdir):
+        apply_fs(tmpdir, minimal_config)
+        build = BuildConfig(
+            {},
+            {
+                'build': {'image': 1.0},
+                'python': {'version': '3.3'},
+            },
+            source_file=str(tmpdir.join('readthedocs.yml')),
+            source_position=0)
+        build.validate_build()
+        with raises(InvalidConfig) as excinfo:
+            build.validate_python()
+        assert excinfo.value.key == 'python.version'
+        assert excinfo.value.code == INVALID_CHOICE
+
+    def it_works_on_python_validation(tmpdir):
+        apply_fs(tmpdir, minimal_config)
+        build = BuildConfig(
+            {},
+            {
+                'build': {'image': 'latest'},
+                'python': {'version': '3.3'},
+            },
+            source_file=str(tmpdir.join('readthedocs.yml')),
+            source_position=0)
+        build.validate_build()
+        build.validate_python()
+
+    def it_works(tmpdir):
+        apply_fs(tmpdir, minimal_config)
+        build = BuildConfig(
+            {},
+            {'build': {'image': 'latest'}},
+            source_file=str(tmpdir.join('readthedocs.yml')),
+            source_position=0)
+        build.validate_build()
+        assert build['build']['image'] == 'readthedocs/build:latest'
+
+    def default(tmpdir):
+        apply_fs(tmpdir, minimal_config)
+        build = BuildConfig(
+            {},
+            {},
+            source_file=str(tmpdir.join('readthedocs.yml')),
+            source_position=0)
+        build.validate_build()
+        assert build['build']['image'] == 'readthedocs/build:2.0'
+
+
 def test_build_validate_calls_all_subvalidators(tmpdir):
     apply_fs(tmpdir, minimal_config)
     build = BuildConfig(

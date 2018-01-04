@@ -91,7 +91,7 @@ class BuildConfig(dict):
     PYTHON_EXTRA_REQUIREMENTS_INVALID_MESSAGE = (
         '"python.extra_requirements" section must be a list.')
 
-    PYTHON_SUPPORTED_VERSIONS = [2, 2.7, 3, 3.3, 3.4, 3.5, 3.6]
+    PYTHON_SUPPORTED_VERSIONS = [2, 2.7, 3, 3.5]
     DOCKER_SUPPORTED_VERSIONS = ['1.0', '2.0', 'latest']
 
     def __init__(self, env_config, raw_config, source_file, source_position):
@@ -381,6 +381,8 @@ class BuildConfig(dict):
             validate_file(requirements_file, base_path)
         self['requirements_file'] = requirements_file
 
+        return True
+
     def validate_conf_file(self):
         if 'conf_file' not in self.raw_config:
             # self.error('conf_file', self.CONF_FILE_REQUIRED_MESSAGE, code=CONF_FILE_REQUIRED)
@@ -392,6 +394,8 @@ class BuildConfig(dict):
             validate_file(conf_file, base_path)
         self['conf_file'] = conf_file
 
+        return True
+
     def validate_formats(self):
         if 'formats' not in self.raw_config or self.raw_config['formats'] is None:
             return None
@@ -401,6 +405,8 @@ class BuildConfig(dict):
             for _format in _formats:
                 validate_choice(_format, self.get_valid_formats())
         self['formats'] = _formats
+
+        return True
 
 
 class ProjectConfig(list):

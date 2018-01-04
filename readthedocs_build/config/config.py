@@ -91,7 +91,7 @@ class BuildConfig(dict):
     PYTHON_EXTRA_REQUIREMENTS_INVALID_MESSAGE = (
         '"python.extra_requirements" section must be a list.')
 
-    PYTHON_SUPPORTED_VERSIONS = [2, 2.7, 3, 3.3, 3.4, 3.5, 3.6]
+    PYTHON_SUPPORTED_VERSIONS = [2, 2.7, 3, 3.5]
     DOCKER_SUPPORTED_VERSIONS = ['1.0', '2.0', 'latest']
 
     def __init__(self, env_config, raw_config, source_file, source_position):

@@ -17,8 +17,8 @@ Library Use
 
 Example uses of this library is:
 
-* https://github.com/rtfd/readthedocs.org/blob/master/readthedocs/doc_builder/config.py#L8-L9
-* https://github.com/rtfd/readthedocs.org/blob/master/readthedocs/projects/tasks.py#L27
+* https://github.com/rtfd/readthedocs.org/blob/0e1112f96e3ba344271a44305028a811072fd10a/readthedocs/doc_builder/config.py#L8-L9
+* https://github.com/rtfd/readthedocs.org/blob/0e1112f96e3ba344271a44305028a811072fd10a/readthedocs/projects/tasks.py#L27
 
 
 Development

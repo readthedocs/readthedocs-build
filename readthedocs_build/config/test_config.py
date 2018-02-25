@@ -115,7 +115,7 @@ def test_build_config_has_explicit_default_null_value(tmpdir):
     base = str(apply_fs(tmpdir, config_with_explicit_defaults))
     build = load(base, env_config)[0]
     assert isinstance(build, BuildConfig)
-    assert build['requirements_file'] is None
+    assert 'requirements_file' not in build
 
 
 def test_config_requires_name():

@@ -376,6 +376,8 @@ class BuildConfig(dict):
             return None
 
         requirements_file = self.raw_config['requirements_file']
+        if requirements_file is None:
+            return None
         base_path = os.path.dirname(self.source_file)
         with self.catch_validation_error('requirements_file'):
             validate_file(requirements_file, base_path)

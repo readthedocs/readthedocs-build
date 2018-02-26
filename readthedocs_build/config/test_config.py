@@ -39,7 +39,7 @@ type: sphinx
 
 
 config_with_explicit_defaults = {
-    'readthedocs.yml': '''\
+    'readthedocs.yml': '''
 name: docs
 type: sphinx
 requirements_file: null

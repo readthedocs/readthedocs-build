@@ -43,6 +43,12 @@ def test_parse_empty_value():
     assert config[0]['base'] is None
 
 
+def test_parse_empty_string_value():
+    buf = StringIO(u'base: ""')
+    config = parse(buf)
+    assert config[0]['base'] is ''
+
+
 def test_parse_multiple_configs_in_one_file():
     buf = StringIO(
         u'''

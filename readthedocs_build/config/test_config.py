@@ -113,7 +113,7 @@ def test_build_config_has_source_position(tmpdir):
     assert second.source_position == 1
 
 
-def test_build_config_has_explicit_default_null_value(tmpdir):
+def test_build_config_has_list_with_single_null_value(tmpdir):
     base = str(apply_fs(tmpdir, config_with_explicit_null_formats))
     build = load(base, env_config)[0]
     assert isinstance(build, BuildConfig)

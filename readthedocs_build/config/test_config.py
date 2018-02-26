@@ -31,6 +31,16 @@ minimal_config = {
 }
 
 
+config_with_explicit_null_formats = {
+    'readthedocs.yml': '''
+name: docs
+type: sphinx
+formats:
+  - null
+'''
+}
+
+
 minimal_config_dir = {
     'readthedocs.yml': '''\
 name: docs
@@ -101,6 +111,13 @@ def test_build_config_has_source_position(tmpdir):
         builds)
     assert first.source_position == 0
     assert second.source_position == 1
+
+
+def test_build_config_has_explicit_default_null_value(tmpdir):
+    base = str(apply_fs(tmpdir, config_with_explicit_null_formats))
+    build = load(base, env_config)[0]
+    assert isinstance(build, BuildConfig)
+    assert 'formats' not in build
 
 
 def test_config_requires_name():

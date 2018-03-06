@@ -31,13 +31,10 @@ def test_parse_single_config():
     assert config[0]['base'] == 'path'
 
 
-def test_parse_null_list():
-    buf = StringIO(u'''
-base:
-  - null
-''')
+def test_parse_empty_list():
+    buf = StringIO(u'base: []')
     config = parse(buf)
-    assert config[0]['base'] is None
+    assert config[0]['base'] == []
 
 
 def test_parse_multiple_configs_in_one_file():

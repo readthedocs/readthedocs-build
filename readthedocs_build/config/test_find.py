@@ -79,11 +79,14 @@ def test_find_multiple_files(tmpdir):
 
 def test_find_unicode_path(tmpdir):
     base_path = os.path.abspath('integration_tests/bad_encode_project')
-    unicode_base_path = base_path  # .decode('utf-8')
     try:
-        find_one(unicode_base_path, ('readthedocs.yml',))
+        path = find_one(base_path, ('readthedocs.yml',))
+        # When python3
+        assert path == ''
     except Exception as e:
-        __import__('pdb').set_trace()
+        # When python2
         assert isinstance(e, UnicodeDecodeError)
-    else:
-        assert False, 'No UnicodeDecodeError exception was raised'
+
+        unicode_base_path = base_path.decode('utf-8')
+        path = find_one(unicode_base_path, ('readthedocs.yml',))
+        assert path == ''

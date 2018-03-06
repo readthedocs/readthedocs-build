@@ -1,6 +1,6 @@
 import os
 
-from .find import find_all
+from .find import find_all, find_one
 from ..testing.utils import apply_fs
 
 
@@ -75,3 +75,15 @@ def test_find_multiple_files(tmpdir):
         str(tmpdir.join('first', 'readthedocs.yml')),
         str(tmpdir.join('third', 'readthedocs.yml')),
     ]
+
+
+def test_find_unicode_path(tmpdir):
+    base_path = os.path.abspath('integration_tests/bad_encode_project')
+    unicode_base_path = base_path  # .decode('utf-8')
+    try:
+        find_one(unicode_base_path, ('readthedocs.yml',))
+    except Exception as e:
+        __import__('pdb').set_trace()
+        assert isinstance(e, UnicodeDecodeError)
+    else:
+        assert False, 'No UnicodeDecodeError exception was raised'

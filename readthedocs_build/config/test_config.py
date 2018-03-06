@@ -15,6 +15,7 @@ from .config import NAME_INVALID
 from .config import PYTHON_INVALID
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
+from .validation import INVALID_DIRECTORY
 from .validation import INVALID_PATH
 from .validation import INVALID_STRING
 

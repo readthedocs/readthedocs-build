@@ -138,7 +138,6 @@ class BuildConfig(dict):
 
     def get_valid_formats(self):
         return (
-            'none',
             'htmlzip',
             'pdf',
             'epub',

@@ -396,9 +396,9 @@ class BuildConfig(dict):
         return True
 
     def validate_formats(self):
-        if 'formats' not in self.raw_config or self.raw_config['formats'] is None:
+        _formats = self.raw_config.get('formats')
+        if 'formats' not in self.raw_config or _formats == []:
             return None
-        _formats = self.raw_config['formats']
 
         with self.catch_validation_error('format'):
             for _format in _formats:

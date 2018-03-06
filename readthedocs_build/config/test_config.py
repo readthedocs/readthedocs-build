@@ -328,9 +328,9 @@ def describe_validate_formats():
         assert build['formats'] == ['pdf']
 
     def formats_can_be_empty():
-        build = get_build_config({'formats': ['none']})
+        build = get_build_config({'formats': []})
         build.validate_formats()
-        assert build['formats'] == ['none']
+        assert 'formats' not in build
 
 
 def describe_validate_setup_py_path():

@@ -507,6 +507,34 @@ def describe_validate_submodules():
             assert excinfo.value.key == 'submodules.exclude'
             assert excinfo.value.code == INVALID_LIST
 
+    def it_parses_explicit_defaults(tmpdir):
+        apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
+        with tmpdir.as_cwd():
+            build = get_build_config({
+                'submodules': {
+                    'include': [],
+                    'recursive': False,
+                }
+            })
+            build.validate_submodules()
+            assert 'submodules' in build
+            assert build['submodules']['include'] == []
+            assert build['submodules']['recursive'] is False
+
+    def it_parses_explicit_wrong_defaults(tmpdir):
+        apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
+        with tmpdir.as_cwd():
+            build = get_build_config({
+                'submodules': {
+                    'include': [],
+                    'recursive': True,
+                }
+            })
+            build.validate_submodules()
+            assert 'submodules' in build
+            assert build['submodules']['include'] == []
+            assert build['submodules']['recursive'] is False
+
 
 def test_valid_build_config():
     build = BuildConfig(env_config,

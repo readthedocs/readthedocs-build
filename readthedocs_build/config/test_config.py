@@ -349,6 +349,165 @@ def describe_validate_setup_py_path():
             assert args[0] == 'setup.py'
 
 
+def describe_validate_submodules():
+
+    def it_defaults_to_all_submodules(tmpdir):
+        with tmpdir.as_cwd():
+            source_file = tmpdir.join('subdir', 'readthedocs.yml')
+            build = get_build_config({}, source_file=str(source_file))
+            build.validate_submodules()
+            # TODO: This will be the dafult behavior?
+            assert 'submodules' in build
+            assert build['submodules'] == {
+                'include': [],
+                'recursive': False,
+            }
+
+    def it_parses_include_key(tmpdir):
+        apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
+        with tmpdir.as_cwd():
+            build = get_build_config({
+                'submodules': {
+                    'include': ['sub-one/', 'sub-two'],
+                }
+            })
+            build.validate_submodules()
+            assert 'submodules' in build
+            assert 'exclude' not in build['submodules']
+            assert build['submodules']['include'] == ['sub-one/', 'sub-two']
+            assert build['submodules']['recursive'] is False
+
+    def it_validates_include_key(tmpdir):
+        apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
+        with tmpdir.as_cwd():
+            build = get_build_config({
+                'submodules': {
+                    'include': ['sub-one/', 'sub-too'],
+                }
+            })
+            with raises(InvalidConfig) as excinfo:
+                build.validate_submodules()
+            assert excinfo.value.key == 'submodules.include'
+            assert excinfo.value.code == INVALID_PATH
+
+    def it_parses_exclude_key(tmpdir):
+        apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
+        with tmpdir.as_cwd():
+            build = get_build_config({
+                'submodules': {
+                    'exclude': ['sub-two'],
+                }
+            })
+            build.validate_submodules()
+            assert 'submodules' in build
+            assert 'include' not in build['submodules']
+            assert build['submodules']['exclude'] == ['sub-two']
+            assert build['submodules']['recursive'] is False
+
+    def it_validates_exclude_key(tmpdir):
+        apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
+        with tmpdir.as_cwd():
+            build = get_build_config({
+                'submodules': {
+                    'exclude': ['sub-too'],
+                }
+            })
+            with raises(InvalidConfig) as excinfo:
+                build.validate_submodules()
+            assert excinfo.value.key == 'submodules.exclude'
+            assert excinfo.value.code == INVALID_PATH
+
+    def it_does_not_allow_exclude_and_include(tmpdir):
+        build = get_build_config({
+            'submodules': {
+                'include': ['sub-one'],
+                'exclude': ['sub-two'],
+            }
+        })
+        with raises(InvalidConfig) as excinfo:
+            build.validate_submodules()
+        assert excinfo.value.key == 'submodules'
+        assert excinfo.value.code == INVALID_KEYS_COMBINATION
+
+    def it_requires_include_with_recursive(tmpdir):
+        build = get_build_config({
+            'submodules': {
+                'recursive': True,
+            }
+        })
+        with raises(InvalidConfig) as excinfo:
+            build.validate_submodules()
+        assert excinfo.value.key == 'submodules'
+        assert excinfo.value.code == MISSING_REQUIRED_KEY
+
+    def it_parses_recursive_key(tmpdir):
+        apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
+        with tmpdir.as_cwd():
+            build = get_build_config({
+                'submodules': {
+                    'exclude': ['sub-two'],
+                },
+                'recursive': True,
+            })
+            build.validate_submodules()
+            assert build['submodules']['recursive'] is True
+
+    def it_validates_recursive_key(tmpdir):
+        apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
+        with tmpdir.as_cwd():
+            build = get_build_config({
+                'submodules': {
+                    'exclude': ['sub-two'],
+                },
+                'recursive': 'True',
+            })
+            with raises(InvalidConfig) as excinfo:
+                build.validate_submodules()
+            assert excinfo.value.key == 'submodules.recursive'
+            assert excinfo.value.code == INVALID_BOOL
+
+    def it_accepts_all_keyword_on_include(tmpdir):
+        apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
+        with tmpdir.as_cwd():
+            build = get_build_config({
+                'submodules': {
+                    'include': 'all',
+                },
+                'recursive': True
+            })
+            build.validate_submodules()
+            assert build['submodules']['include'] == ALL
+            assert build['submodules']['recursive'] is True
+
+    def it_validates_the_correct_type_for_include(tmpdir):
+        apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
+        with tmpdir.as_cwd():
+            build = get_build_config({
+                'submodules': {
+                    'include': 'none',
+                },
+                'recursive': True
+            })
+            with raises(InvalidConfig) as excinfo:
+                build.validate_submodules()
+            assert excinfo.value.key == 'submodules.include'
+            assert excinfo.value.code == INVALID_LIST
+
+    def it_validates_the_correct_type_for_exclude(tmpdir):
+        apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
+        with tmpdir.as_cwd():
+            build = get_build_config({
+                'submodules': {
+                    'exclude': 'all',
+                },
+                'recursive': True
+            })
+            with raises(InvalidConfig) as excinfo:
+                build.validate_submodules()
+            assert excinfo.value.key == 'submodules.exclude'
+            assert excinfo.value.code == INVALID_LIST
+
+
 def test_valid_build_config():
     build = BuildConfig(env_config,
                         minimal_config,

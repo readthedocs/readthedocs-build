@@ -9,6 +9,9 @@ from .config import InvalidConfig
 from .config import load
 from .config import BuildConfig
 from .config import ProjectConfig
+from .config import ALL
+from .config import INVALID_KEYS_COMBINATION
+from .config import MISSING_REQUIRED_KEY
 from .config import TYPE_REQUIRED
 from .config import NAME_REQUIRED
 from .config import NAME_INVALID
@@ -16,6 +19,7 @@ from .config import PYTHON_INVALID
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
 from .validation import INVALID_DIRECTORY
+from .validation import INVALID_LIST
 from .validation import INVALID_PATH
 from .validation import INVALID_STRING
 
@@ -358,10 +362,8 @@ def describe_validate_submodules():
             build.validate_submodules()
             # TODO: This will be the dafult behavior?
             assert 'submodules' in build
-            assert build['submodules'] == {
-                'include': [],
-                'recursive': False,
-            }
+            assert build['submodules']['include'] == []
+            assert build['submodules']['recursive'] is False
 
     def it_parses_include_key(tmpdir):
         apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
@@ -446,8 +448,8 @@ def describe_validate_submodules():
             build = get_build_config({
                 'submodules': {
                     'exclude': ['sub-two'],
+                    'recursive': True,
                 },
-                'recursive': True,
             })
             build.validate_submodules()
             assert build['submodules']['recursive'] is True
@@ -458,8 +460,8 @@ def describe_validate_submodules():
             build = get_build_config({
                 'submodules': {
                     'exclude': ['sub-two'],
+                    'recursive': 'True',
                 },
-                'recursive': 'True',
             })
             with raises(InvalidConfig) as excinfo:
                 build.validate_submodules()
@@ -472,8 +474,8 @@ def describe_validate_submodules():
             build = get_build_config({
                 'submodules': {
                     'include': 'all',
+                    'recursive': True,
                 },
-                'recursive': True
             })
             build.validate_submodules()
             assert build['submodules']['include'] == ALL
@@ -485,8 +487,8 @@ def describe_validate_submodules():
             build = get_build_config({
                 'submodules': {
                     'include': 'none',
+                    'recursive': True,
                 },
-                'recursive': True
             })
             with raises(InvalidConfig) as excinfo:
                 build.validate_submodules()
@@ -499,8 +501,8 @@ def describe_validate_submodules():
             build = get_build_config({
                 'submodules': {
                     'exclude': 'all',
+                    'recursive': True,
                 },
-                'recursive': True
             })
             with raises(InvalidConfig) as excinfo:
                 build.validate_submodules()

@@ -6,7 +6,8 @@ from .find import find_one
 from .parser import ParseError
 from .parser import parse
 from .validation import (validate_bool, validate_choice, validate_directory,
-                         validate_file, validate_string, ValidationError)
+                         validate_file, validate_list, validate_string,
+                         ValidationError)
 
 
 __all__ = (
@@ -14,11 +15,14 @@ __all__ = (
 
 
 CONFIG_FILENAMES = ('readthedocs.yml', '.readthedocs.yml')
+ALL = 'all'
 
 
 BASE_INVALID = 'base-invalid'
 BASE_NOT_A_DIR = 'base-not-a-directory'
 CONFIG_SYNTAX_INVALID = 'config-syntax-invalid'
+INVALID_KEYS_COMBINATION = 'invalid-keys-combination'
+MISSING_REQUIRED_KEY = 'missing-required-key'
 CONFIG_REQUIRED = 'config-required'
 NAME_REQUIRED = 'name-required'
 NAME_INVALID = 'name-invalid'
@@ -168,6 +172,7 @@ class BuildConfig(dict):
         self.validate_base()
         self.validate_python()
         self.validate_formats()
+        self.validate_submodules()
 
         self.validate_conda()
         self.validate_requirements_file()
@@ -407,6 +412,66 @@ class BuildConfig(dict):
         self['formats'] = _formats
 
         return True
+
+    def validate_submodules(self):
+        raw_submodules = self.raw_config.get('submodules')
+        if raw_submodules is None:
+            self['submodules'] = self.get_default_submodules_config()
+            return None
+
+        if 'include' in raw_submodules and 'exclude' in raw_submodules:
+            self.error(
+                'submodules',
+                'It is not possible to include and exclude submodules',
+                code=INVALID_KEYS_COMBINATION
+            )
+
+        self['submodules'] = {}
+        submodules = self['submodules']
+
+        with self.catch_validation_error('submodules.recursive'):
+            recursive = raw_submodules.get('recursive', False)
+            submodules['recursive'] = validate_bool(recursive)
+
+        if 'include' in raw_submodules:
+            with self.catch_validation_error('submodules.include'):
+                include = raw_submodules['include']
+                if include == ALL:
+                    submodules['include'] = ALL
+                else:
+                    submodules['include'] = validate_list(include)
+                    self.validate_directories(submodules['include'])
+                if not submodules['include']:
+                    submodules['recursive'] = False
+        elif 'exclude' in raw_submodules:
+            with self.catch_validation_error('submodules.exclude'):
+                exclude = raw_submodules['exclude']
+                if exclude == ALL:
+                    submodules['exclude'] = ALL
+                    submodules['recursive'] = False
+                else:
+                    submodules['exclude'] = validate_list(exclude)
+                    self.validate_directories(submodules['exclude'])
+        elif submodules['recursive'] is True:
+            self.error(
+                'submodules',
+                'You need to include submodules',
+                code=MISSING_REQUIRED_KEY
+            )
+        return True
+
+    def get_default_submodules_config(self):
+        return {
+            'include': [],
+            'recursive': False,
+        }
+
+    def validate_directories(self, directories):
+        base_path = os.path.dirname(self.source_file)
+        return [
+            validate_directory(directory, base_path)
+            for directory in directories
+        ]
 
 
 class ProjectConfig(list):

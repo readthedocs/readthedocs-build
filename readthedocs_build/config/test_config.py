@@ -495,12 +495,25 @@ def describe_validate_submodules():
             assert excinfo.value.key == 'submodules.include'
             assert excinfo.value.code == INVALID_LIST
 
-    def it_validates_the_correct_type_for_exclude(tmpdir):
+    def it_accepts_all_keyword_on_exclude(tmpdir):
         apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
         with tmpdir.as_cwd():
             build = get_build_config({
                 'submodules': {
                     'exclude': 'all',
+                    'recursive': True,
+                },
+            })
+            build.validate_submodules()
+            assert build['submodules']['exclude'] == ALL
+            assert build['submodules']['recursive'] is False
+
+    def it_validates_the_correct_type_for_exclude(tmpdir):
+        apply_fs(tmpdir, {'sub-one': {}, 'sub-two': {}})
+        with tmpdir.as_cwd():
+            build = get_build_config({
+                'submodules': {
+                    'exclude': 'none',
                     'recursive': True,
                 },
             })

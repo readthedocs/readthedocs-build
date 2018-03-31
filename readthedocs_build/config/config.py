@@ -446,8 +446,12 @@ class BuildConfig(dict):
         elif 'exclude' in raw_submodules:
             with self.catch_validation_error('submodules.exclude'):
                 exclude = raw_submodules['exclude']
-                submodules['exclude'] = validate_list(exclude)
-                self.validate_directories(submodules['exclude'])
+                if exclude == ALL:
+                    submodules['exclude'] = ALL
+                    submodules['recursive'] = False
+                else:
+                    submodules['exclude'] = validate_list(exclude)
+                    self.validate_directories(submodules['exclude'])
         elif submodules['recursive'] is True:
             self.error(
                 'submodules',

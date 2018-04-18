@@ -338,6 +338,13 @@ def describe_validate_formats():
         build.validate_formats()
         assert build['formats'] == ['pdf', 'htmlzip', 'epub']
 
+    def cant_have_none_as_format():
+        build = get_build_config({'formats': ['htmlzip', None]})
+        with raises(InvalidConfig) as excinfo:
+            build.validate_formats()
+        assert excinfo.value.key == 'format'
+        assert excinfo.value.code == INVALID_CHOICE
+
     def formats_have_only_allowed_values():
         build = get_build_config({'formats': ['htmlzip', 'csv']})
         with raises(InvalidConfig) as excinfo:

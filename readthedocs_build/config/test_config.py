@@ -16,6 +16,7 @@ from .config import PYTHON_INVALID
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
 from .validation import INVALID_DIRECTORY
+from .validation import INVALID_LIST
 from .validation import INVALID_PATH
 from .validation import INVALID_STRING
 
@@ -343,6 +344,13 @@ def describe_validate_formats():
             build.validate_formats()
         assert excinfo.value.key == 'format'
         assert excinfo.value.code == INVALID_CHOICE
+
+    def only_list_type():
+        build = get_build_config({'formats': None})
+        with raises(InvalidConfig) as excinfo:
+            build.validate_formats()
+        assert excinfo.value.key == 'format'
+        assert excinfo.value.code == INVALID_LIST
 
 
 def describe_validate_setup_py_path():

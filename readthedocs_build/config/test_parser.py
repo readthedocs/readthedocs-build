@@ -31,7 +31,6 @@ def test_parse_single_config():
     assert config[0]['base'] == 'path'
 
 
-<<<<<<< HEAD
 def test_parse_null_value():
     buf = StringIO(u'base: null')
     config = parse(buf)

@@ -5,8 +5,9 @@ import os
 from .find import find_one
 from .parser import ParseError
 from .parser import parse
-from .validation import (validate_bool, validate_choice, validate_directory,
-                         validate_file, validate_string, ValidationError)
+from .validation import (ValidationError, validate_bool, validate_choice,
+                         validate_directory, validate_file, validate_list,
+                         validate_string)
 
 
 __all__ = (
@@ -138,7 +139,6 @@ class BuildConfig(dict):
 
     def get_valid_formats(self):
         return (
-            'none',
             'htmlzip',
             'pdf',
             'epub',
@@ -399,11 +399,12 @@ class BuildConfig(dict):
         return True
 
     def validate_formats(self):
-        if 'formats' not in self.raw_config or self.raw_config['formats'] is None:
+        _formats = self.raw_config.get('formats')
+        if 'formats' not in self.raw_config or _formats == []:
             return None
-        _formats = self.raw_config['formats']
 
         with self.catch_validation_error('format'):
+            validate_list(_formats)
             for _format in _formats:
                 validate_choice(_format, self.get_valid_formats())
         self['formats'] = _formats

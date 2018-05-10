@@ -16,6 +16,7 @@ from .config import PYTHON_INVALID
 from .validation import INVALID_BOOL
 from .validation import INVALID_CHOICE
 from .validation import INVALID_DIRECTORY
+from .validation import INVALID_LIST
 from .validation import INVALID_PATH
 from .validation import INVALID_STRING
 
@@ -28,6 +29,15 @@ env_config = {
 minimal_config = {
     'name': 'docs',
     'type': 'sphinx',
+}
+
+
+config_with_explicit_empty_list = {
+    'readthedocs.yml': '''
+name: docs
+type: sphinx
+formats: []
+'''
 }
 
 
@@ -117,6 +127,13 @@ def test_build_config_has_explicit_default_null_value(tmpdir):
     build = load(base, env_config)[0]
     assert isinstance(build, BuildConfig)
     assert 'requirements_file' not in build
+
+
+def test_build_config_has_list_with_single_null_value(tmpdir):
+    base = str(apply_fs(tmpdir, config_with_explicit_empty_list))
+    build = load(base, env_config)[0]
+    assert isinstance(build, BuildConfig)
+    assert 'formats' not in build
 
 
 def test_config_requires_name():
@@ -328,9 +345,35 @@ def describe_validate_formats():
         assert build['formats'] == ['pdf']
 
     def formats_can_be_empty():
-        build = get_build_config({'formats': ['none']})
+        build = get_build_config({'formats': []})
         build.validate_formats()
-        assert build['formats'] == ['none']
+        assert 'formats' not in build
+
+    def all_valid_formats():
+        build = get_build_config({'formats': ['pdf', 'htmlzip', 'epub']})
+        build.validate_formats()
+        assert build['formats'] == ['pdf', 'htmlzip', 'epub']
+
+    def cant_have_none_as_format():
+        build = get_build_config({'formats': ['htmlzip', None]})
+        with raises(InvalidConfig) as excinfo:
+            build.validate_formats()
+        assert excinfo.value.key == 'format'
+        assert excinfo.value.code == INVALID_CHOICE
+
+    def formats_have_only_allowed_values():
+        build = get_build_config({'formats': ['htmlzip', 'csv']})
+        with raises(InvalidConfig) as excinfo:
+            build.validate_formats()
+        assert excinfo.value.key == 'format'
+        assert excinfo.value.code == INVALID_CHOICE
+
+    def only_list_type():
+        build = get_build_config({'formats': None})
+        with raises(InvalidConfig) as excinfo:
+            build.validate_formats()
+        assert excinfo.value.key == 'format'
+        assert excinfo.value.code == INVALID_LIST
 
 
 def describe_validate_setup_py_path():

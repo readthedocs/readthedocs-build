@@ -6,4 +6,7 @@ autoapi
 _build_rtd
 .idea/
 .tox
+.cache
+.python-version
 dist
+tags

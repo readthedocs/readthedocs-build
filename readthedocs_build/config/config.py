@@ -14,7 +14,7 @@ __all__ = (
     'load', 'BuildConfig', 'ConfigError', 'InvalidConfig', 'ProjectConfig')
 
 
-CONFIG_FILENAMES = ('readthedocs.yml', '.readthedocs.yml')
+CONFIG_FILENAMES = ('readthedocs.yml', '.readthedocs.yml', 'readthedocs.yaml')
 
 
 BASE_INVALID = 'base-invalid'

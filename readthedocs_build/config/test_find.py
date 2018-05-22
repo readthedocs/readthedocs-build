@@ -1,6 +1,9 @@
 import os
 
-from .find import find_all
+import pytest
+import six
+
+from .find import find_all, find_one
 from ..testing.utils import apply_fs
 
 
@@ -75,3 +78,15 @@ def test_find_multiple_files(tmpdir):
         str(tmpdir.join('first', 'readthedocs.yml')),
         str(tmpdir.join('third', 'readthedocs.yml')),
     ]
+
+
+@pytest.mark.skipif(not six.PY2, reason='Only for python2')
+@pytest.mark.xfail(raises=UnicodeDecodeError)
+def test_find_unicode_path(tmpdir):
+    base_path = os.path.abspath('integration_tests/bad_encode_project')
+    assert isinstance(base_path, str)
+    unicode_base_path = base_path.decode('utf-8')
+    assert isinstance(unicode_base_path, unicode)
+    path = find_one(unicode_base_path, ('readthedocs.yml',))
+    assert path == ''
+    assert False, 'The UnicodeDecodeError was not raised'

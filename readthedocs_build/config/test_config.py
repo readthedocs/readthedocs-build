@@ -103,13 +103,11 @@ def test_minimal_config(tmpdir):
 
 
 def test_yaml_extension(tmpdir):
+    """ Make sure it's capable of loading the 'readthedocs' file with a 'yaml' extension. """
     apply_fs(tmpdir, yaml_extension_config_dir)
     base = str(tmpdir)
     config = load(base, env_config)
-    assert isinstance(config, ProjectConfig)
     assert len(config) == 1
-    build = config[0]
-    assert isinstance(build, BuildConfig)
 
 
 def test_build_config_has_source_file(tmpdir):

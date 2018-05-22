@@ -29,7 +29,7 @@ PYTHON_INVALID = 'python-invalid'
 
 DOCKER_DEFAULT_IMAGE = 'readthedocs/build'
 DOCKER_DEFAULT_VERSION = '2.0'
-# These map to coordisponding settings in the .org,
+# These map to corresponding settings in the .org,
 # so they haven't been renamed.
 DOCKER_IMAGE = '{}:{}'.format(DOCKER_DEFAULT_IMAGE, DOCKER_DEFAULT_VERSION)
 DOCKER_IMAGE_SETTINGS = {

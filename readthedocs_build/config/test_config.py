@@ -48,6 +48,13 @@ type: sphinx
 '''
 }
 
+yaml_extension_config_dir = {
+    'readthedocs.yaml': '''\
+name: docs
+type: sphinx
+'''
+}
+
 
 multiple_config_dir = {
     'readthedocs.yml': '''
@@ -87,6 +94,16 @@ def test_load_empty_config_file(tmpdir):
 
 def test_minimal_config(tmpdir):
     apply_fs(tmpdir, minimal_config_dir)
+    base = str(tmpdir)
+    config = load(base, env_config)
+    assert isinstance(config, ProjectConfig)
+    assert len(config) == 1
+    build = config[0]
+    assert isinstance(build, BuildConfig)
+
+
+def test_yaml_extension(tmpdir):
+    apply_fs(tmpdir, yaml_extension_config_dir)
     base = str(tmpdir)
     config = load(base, env_config)
     assert isinstance(config, ProjectConfig)

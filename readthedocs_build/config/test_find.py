@@ -39,11 +39,11 @@ def test_find_nested(tmpdir):
     apply_fs(tmpdir, {'first/readthedocs.yml': ''})
 
     base = str(tmpdir)
-    paths = list(find_all(base, r'readthedocs\.yml'))
-    assert set(paths) == set([
+    paths = set(list(find_all(base, r'readthedocs\.yml')))
+    assert paths == {
         str(tmpdir.join('first', 'readthedocs.yml')),
         str(tmpdir.join('third', 'readthedocs.yml')),
-    ])
+    }
 
 
 def test_find_multiple_files(tmpdir):
@@ -63,12 +63,12 @@ def test_find_multiple_files(tmpdir):
     apply_fs(tmpdir, {'first/readthedocs.yml': ''})
 
     base = str(tmpdir)
-    paths = list(find_all(base, r'\.?readthedocs.yml'))
-    assert paths == [
+    paths = set(list(find_all(base, r'\.?readthedocs\.yml')))
+    assert paths == {
         str(tmpdir.join('first', 'readthedocs.yml')),
         str(tmpdir.join('first', '.readthedocs.yml')),
         str(tmpdir.join('third', 'readthedocs.yml')),
-    ]
+    }
 
 
 @pytest.mark.skipif(not six.PY2, reason='Only for python2')

@@ -49,6 +49,15 @@ type: sphinx
 }
 
 
+config_with_explicit_defaults = {
+    'readthedocs.yml': '''
+name: docs
+type: sphinx
+requirements_file: null
+'''
+}
+
+
 multiple_config_dir = {
     'readthedocs.yml': '''
 name: first
@@ -111,6 +120,13 @@ def test_build_config_has_source_position(tmpdir):
         builds)
     assert first.source_position == 0
     assert second.source_position == 1
+
+
+def test_build_config_has_explicit_default_null_value(tmpdir):
+    base = str(apply_fs(tmpdir, config_with_explicit_defaults))
+    build = load(base, env_config)[0]
+    assert isinstance(build, BuildConfig)
+    assert 'requirements_file' not in build
 
 
 def test_build_config_has_list_with_single_null_value(tmpdir):

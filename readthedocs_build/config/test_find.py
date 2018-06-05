@@ -39,7 +39,7 @@ def test_find_nested(tmpdir):
     apply_fs(tmpdir, {'first/readthedocs.yml': ''})
 
     base = str(tmpdir)
-    paths = set(list(find_all(base, r'readthedocs\.yml')))
+    paths = set(find_all(base, r'readthedocs\.yml'))
     assert paths == {
         str(tmpdir.join('first', 'readthedocs.yml')),
         str(tmpdir.join('third', 'readthedocs.yml')),
@@ -63,7 +63,7 @@ def test_find_multiple_files(tmpdir):
     apply_fs(tmpdir, {'first/readthedocs.yml': ''})
 
     base = str(tmpdir)
-    paths = set(list(find_all(base, r'\.?readthedocs\.yml')))
+    paths = set(find_all(base, r'\.?readthedocs\.yml'))
     assert paths == {
         str(tmpdir.join('first', 'readthedocs.yml')),
         str(tmpdir.join('first', '.readthedocs.yml')),

@@ -600,6 +600,7 @@ def test_project_set_output_base():
 
 
 @pytest.mark.parametrize("correct_config_filename",
-                         {"readthedocs.yml", "readthedocs.yaml", ".readthedocs.yml", ".readthedocs.yaml"})
+                         [prefix + "readthedocs." + extension for prefix in {"", "."}
+                          for extension in {"yml", "yaml"}])
 def test_config_filenames_regex(correct_config_filename):
     assert re.match(CONFIG_FILENAME_REGEX, correct_config_filename)

@@ -1,10 +1,13 @@
+import re
+
+import pytest
 from mock import patch
 from mock import DEFAULT
 from pytest import raises
 import os
 
 from ..testing.utils import apply_fs
-from .config import ConfigError
+from .config import ConfigError, CONFIG_FILENAME_REGEX
 from .config import InvalidConfig
 from .config import load
 from .config import BuildConfig
@@ -594,3 +597,9 @@ def test_project_set_output_base():
     for build_config in project:
         assert (
             build_config['output_base'] == os.path.join(os.getcwd(), 'random'))
+
+
+@pytest.mark.parametrize("correct_config_filename",
+                         {"readthedocs.yml", "readthedocs.yaml", ".readthedocs.yml", ".readthedocs.yaml"})
+def test_config_filenames_regex(correct_config_filename):
+    assert re.match(CONFIG_FILENAME_REGEX, correct_config_filename)

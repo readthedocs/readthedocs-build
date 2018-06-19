@@ -12,8 +12,9 @@ Creating a build works like this:
 
 ``rtd-build`` will then perform the following actions:
 
-- it searches for all ``readthedocs.yml`` files below the current directory
-  and merges all found files into a list of configurations
+- it searches for all ``readthedocs.yml`` (optionally use ``.`` prefix or
+  extension ``yaml``) files below the current directory and merges all found
+  files into a list of configurations
 - it iterates over all configurations (order is not garuanteed) and performs
   the following actions for each:
 

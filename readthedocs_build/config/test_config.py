@@ -1,10 +1,13 @@
+import re
+
+import pytest
 from mock import patch
 from mock import DEFAULT
 from pytest import raises
 import os
 
 from ..testing.utils import apply_fs
-from .config import ConfigError
+from .config import ConfigError, CONFIG_FILENAME_REGEX
 from .config import InvalidConfig
 from .config import load
 from .config import BuildConfig
@@ -43,6 +46,13 @@ formats: []
 
 minimal_config_dir = {
     'readthedocs.yml': '''\
+name: docs
+type: sphinx
+'''
+}
+
+yaml_extension_config_dir = {
+    'readthedocs.yaml': '''\
 name: docs
 type: sphinx
 '''
@@ -93,6 +103,14 @@ def test_minimal_config(tmpdir):
     assert len(config) == 1
     build = config[0]
     assert isinstance(build, BuildConfig)
+
+
+def test_yaml_extension(tmpdir):
+    """ Make sure it's capable of loading the 'readthedocs' file with a 'yaml' extension. """
+    apply_fs(tmpdir, yaml_extension_config_dir)
+    base = str(tmpdir)
+    config = load(base, env_config)
+    assert len(config) == 1
 
 
 def test_build_config_has_source_file(tmpdir):
@@ -579,3 +597,10 @@ def test_project_set_output_base():
     for build_config in project:
         assert (
             build_config['output_base'] == os.path.join(os.getcwd(), 'random'))
+
+
+@pytest.mark.parametrize("correct_config_filename",
+                         [prefix + "readthedocs." + extension for prefix in {"", "."}
+                          for extension in {"yml", "yaml"}])
+def test_config_filenames_regex(correct_config_filename):
+    assert re.match(CONFIG_FILENAME_REGEX, correct_config_filename)

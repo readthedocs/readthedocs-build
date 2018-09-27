@@ -1,6 +1,12 @@
 Read the Docs Builder
 =====================
 
+.. important::
+
+   This repo was moved to the
+   `Read the Docs code <https://github.com/rtfd/readthedocs.org/tree/master/readthedocs/config>`__.
+   Issues and pull requests should be done there.
+
 .. warning::
    This repo is only used as a configuration parser for readthedocs.org builds,
    and it's unsupported for other uses.

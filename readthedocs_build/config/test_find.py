@@ -86,7 +86,7 @@ def test_find_unicode_path(tmpdir):
     base_path = os.path.abspath('integration_tests/bad_encode_project')
     assert isinstance(base_path, str)
     unicode_base_path = base_path.decode('utf-8')
-    assert isinstance(unicode_base_path, unicode)
+    assert isinstance(unicode_base_path, six.text_type)
     path = find_one(unicode_base_path, ('readthedocs.yml',))
     assert path == ''
     assert False, 'The UnicodeDecodeError was not raised'

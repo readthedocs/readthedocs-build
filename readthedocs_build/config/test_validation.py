@@ -44,7 +44,7 @@ def describe_validate_choice():
 
     def it_accepts_valid_choice():
         result = validate_choice('choice', ('choice', 'another_choice'))
-        assert result is 'choice'
+        assert result == 'choice'
 
         with raises(ValidationError) as excinfo:
             validate_choice('c', 'abc')

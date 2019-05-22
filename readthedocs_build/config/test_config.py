@@ -268,12 +268,12 @@ def describe_validate_python_version():
     def it_defaults_to_a_valid_version():
         build = get_build_config({'python': {}})
         build.validate_python()
-        assert build['python']['version'] is 2
+        assert build['python']['version'] == 2
 
     def it_supports_other_versions():
         build = get_build_config({'python': {'version': 3.5}})
         build.validate_python()
-        assert build['python']['version'] is 3.5
+        assert build['python']['version'] == 3.5
 
     def it_validates_versions_out_of_range():
         build = get_build_config({'python': {'version': 1.0}})
